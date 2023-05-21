@@ -57,21 +57,17 @@ def getTrojanMetaData(id):
 # function
 
 def getNewScanId():
-    sql = "select max(scan_id) from detected_standard_permissions"
-    db_cursor.execute(sql)
+    db_cursor.execute("select max(scan_id) from detected_standard_permissions")
     result = db_cursor.fetchall()
-    scan_id = 0
     if result[0][0] == None:
-        scan_id = 1000
+        return str(1000)
     else:
-        scan_id = result[0][0] + 1 
+        return str(result[0][0] + 1) 
     # if
-
-    return str(scan_id)
 # function
 
 def readDetectedPermissions():
-    f = open("DATA_PERMISSION_INPUT.txt", "r")
+    f = open("INPUT\\DATA_PERMISSION_INPUT.txt", "r")
     temp = list()
     for line in f:
         temp.append(line.strip())
@@ -79,16 +75,19 @@ def readDetectedPermissions():
     return temp
 # function
 
-def createPermissionRecord(scan, trojan):
-    print("Attempting to create new permission record")
-    print("Scan: ", scan, " Trojan: ", trojan, "\n")
+def createPermissionRecord(scanId, trojan):
+    print("Create new trojan permission record")
+    print("Scan: ", scanId, " Trojan: ", trojan, "\n")
+
     sql = "INSERT INTO detected_standard_permissions (scan_id, trojan_id ) VALUES (%s, %s)"
-    val = (scan, trojan)
+    val = (scanId, trojan)
     db_cursor.execute(sql, val)
     db_connection.commit()
 # function
 
 def classifyPermissions(scan, trojan, permissions):
+    print("Classifying detected trojan permissions")
+
     standardFormatPerms = list()
     # signatue = list() # signature permissions
     unknown = list()
@@ -96,11 +95,9 @@ def classifyPermissions(scan, trojan, permissions):
 
     for index in permissions:
 
-        # Standard formatted Android permissions
+        # check if permission matches the standard permission formatted
         if "android.permission." in index:
             standardFormatPerms.append(index)
-
-        # Unknown permissions
         else:
             unknown.append(index)
             unknownFound = True
@@ -108,10 +105,10 @@ def classifyPermissions(scan, trojan, permissions):
     # for
 
     if unknownFound:
-        f = open("UnknownPermissionFound.txt", "w")
+        f = open("OUTPUT\\UnknownPermissionFound.txt", "w")
         try:
            for i in unknown:
-                print(i)
+                #print(i) # debugging
                 f.write(i + "\n")
             # for
         except IOError as e:
@@ -120,7 +117,6 @@ def classifyPermissions(scan, trojan, permissions):
         # try
     # if
 
-    # record permissions
     recordAndroidPermissions(scan, trojan, standardFormatPerms)
     #displayUnknownPermissions(scan, trojan, unknown)
 # function
@@ -139,7 +135,7 @@ def getStandardAndroidPermissionList():
 
 # Record Android Permissions
 def recordAndroidPermissions(scanId, trojan, permissions):
-    print("Record detected premissions for Trojan ID: " + trojan)
+    print("Record detected premissions for Trojan ID: " + str(trojan))
     cnt = 0
     unknownPermissions = list()
     standardPermissionList = getStandardAndroidPermissionList()
@@ -154,6 +150,7 @@ def recordAndroidPermissions(scanId, trojan, permissions):
         else:
             sql = "UPDATE detected_standard_permissions SET " + index[FORMAT_HEADER:] + " = 'X' WHERE scan_id = " + scanId
             executeQuery(sql)
+            cnt = cnt + 1
         # if
     # for
     print(str(cnt) + " permission columns updated.")
@@ -167,10 +164,9 @@ def recordUnknownPermissions(scanId, trojan, unknownPermissions):
     executeQuery(sql, val)
     db_connection.commit()
     cnt = 0
-
     for index in unknownPermissions:
         sql = "UPDATE detected_other_permissions SET " + index + " = 'X' WHERE scan_id = " + scanId
-        executeQuery(sql)
+        executeQuery(sql, None)
         cnt = cnt + 1
     # for
     print(str(cnt) + " non-standard permissions recorded.")
