@@ -1,0 +1,1 @@
+select * from malware_samples where id in (60, 61, 62, 100, 101, 117, 182)
