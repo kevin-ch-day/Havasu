@@ -153,23 +153,58 @@ def recordAndroidPermissions(scanId, trojan, permissions):
             cnt = cnt + 1
         # if
     # for
-    print(str(cnt) + " permission columns updated.")
+
+    print(str(cnt) + " permission columns updated.\n")
     recordUnknownPermissions(scanId, trojan, unknownPermissions)
 # function
 
 def recordUnknownPermissions(scanId, trojan, unknownPermissions):
+    db_cursor.execute("show columns from detected_other_permissions")
+    results = db_cursor.fetchall()
+    if not results:
+        print("[!!] - No columns retrieved from: detected_other_permissions")
+        exit()
+    # if
+
+    unknownPermissions = list()
+    for i in results:
+        if 'scan_id' == i[0] or 'trojan_id' == i[0]:
+            pass
+        else:
+            unknownPermissions.append(i[0])
+        # if
+    # for
+      
+    print(unknownPermissions) # DEBUGGING
+
     # Display Non-Standard Permissions
     sql = "INSERT INTO detected_other_permissions (scan_id, trojan_id ) VALUES (%s, %s)"
     val = (scanId, trojan)
     executeQuery(sql, val)
     db_connection.commit()
+
     cnt = 0
     for index in unknownPermissions:
-        sql = "UPDATE detected_other_permissions SET " + index + " = 'X' WHERE scan_id = " + scanId
+        if index not in unknownPermissions:
+            print(index)
+            # add new columns to table: detected_other_permissions
+            sql = "ALTER TABLE detected_other_permissions add " + index + " VARCHAR(1) NULL DEFAULT NULL"
+            db_cursor.execute(sql)
+            executeQuery(sql, None)
+            db_connection.commit()
+            print("New column added: " + index + ".\n")
+            exit()
+        # if
+
+        # update column within permission record
+        sql = "update detected_other_permissions set " + index + " = 'X' where scan_id = " + scanId
         executeQuery(sql, None)
         cnt = cnt + 1
     # for
-    print(str(cnt) + " non-standard permissions recorded.")
+
+    print(str(cnt) + " non-standard permissions recorded.\n")
+# function
+
 # function
 
 # execute sql query
@@ -184,6 +219,7 @@ def executeQuery(sql, val):
         db_connection.commit()
     except mysql.connector.Error as err:
         print("[!!] MySQL Error: {}".format(err))
+        exit()
     finally:
         return results
     # try
