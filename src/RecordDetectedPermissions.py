@@ -5,7 +5,7 @@ Zorivis.startDBConn() # start database connection
 TROJAN = 60
 SCAN_ID = Zorivis.getNewScanId() # create scan id #
 
-permissions = Zorivis.readDetectedPermissions()
+permissions = Zorivis.readDetectedPermissionInput()
 permissions.sort()
 
 # create trojan record for permissions
