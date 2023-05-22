@@ -1,7 +1,7 @@
 # Zorivis.py
 # Author: kevin.ch.day@gmail.com
-# Android Permissions: https://developer.android.com/reference/android/Manifest.permission
-# Date last updated: 5/20/2023
+# Date last updated: 5/22/2023
+# Android Permissions Source: https://developer.android.com/reference/android/Manifest.permission
 
 import mysql.connector
 import pandas as pd
@@ -181,7 +181,7 @@ def recordAndroidPermissions(scanId, trojan, permissions):
     print("#1 - Standard permission columns.")
     print(str(updatedColumns) + " columns updated.")
 
-    #recordUnknownPermissions(scanId, trojan, unknownPermissions)
+    recordUnknownPermissions(scanId, trojan, unknownPermissions)
 # function
 
 def recordUnknownPermissions(scanId, trojan, unknownPermissions):
