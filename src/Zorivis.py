@@ -7,10 +7,6 @@ import mysql.connector
 import pandas as pd
 import random
 
-def startApp():
-    print("** Zorivis App Started **")
-# function
-
 def startDBConn():
     """ Connect to MySQL database """
     try:
@@ -92,29 +88,37 @@ def classifyPermissions(scan, trojan, permissions):
     # signatue = list() # signature permissions
     unknown = list()
     unknownFound = False
+    numUnknownPermissions = 0
+    numStandardPermissions = 0
 
     for index in permissions:
 
         # check if permission matches the standard permission formatted
         if "android.permission." in index:
             standardFormatPerms.append(index)
+            print("Permission: " + index) # DEBUGGING
+            numStandardPermissions = 1 + numStandardPermissions
         else:
             unknown.append(index)
             unknownFound = True
         # if
     # for
+    print("Standard Permissions found: "+ str(numStandardPermissions) + "\n") # new line
 
     if unknownFound:
+        numUnknownPermissions = 0
         f = open("OUTPUT\\UnknownPermissionFound.txt", "w")
         try:
            for i in unknown:
                 #print(i) # debugging
                 f.write(i + "\n")
+                numUnknownPermissions = 1 + numUnknownPermissions
             # for
         except IOError as e:
             print("I/O error({0}): {1}".format(e.errno, e.strerror))
             exit()
         # try
+        print("Unknown Permissions found: "+ str(numUnknownPermissions))
     # if
 
     recordAndroidPermissions(scan, trojan, standardFormatPerms)
@@ -145,28 +149,41 @@ def recordAndroidPermissions(scanId, trojan, permissions):
         # if detectect permission is not a  standard Android permission
         if index not in standardPermissionList:
             unknownPermissions.append(index[FORMAT_HEADER:])
+            #print(index[FORMAT_HEADER:]) # DEBUGGING
 
         # if no record exists within table
         else:
-            sql = "UPDATE detected_standard_permissions SET " + index[FORMAT_HEADER:] + " = 'X' WHERE scan_id = " + scanId
-            executeQuery(sql)
-            cnt = cnt + 1
+            try:
+                sql = "UPDATE detected_standard_permissions SET " + index[FORMAT_HEADER:] + " = 'X' WHERE scan_id = " + scanId
+                db_cursor.execute(sql)
+                db_connection.commit()
+                cnt = cnt + 1
+            except mysql.connector.Error as err:
+                print("[!!] MySQL Error: {}".format(err))
+                exit()
+            # try
         # if
     # for
 
-    print(str(cnt) + " permission columns updated.\n")
+    print("Standard permission columns.\n")
+    print(str(cnt) + " columns updated.\n")
+
     recordUnknownPermissions(scanId, trojan, unknownPermissions)
 # function
 
 def recordUnknownPermissions(scanId, trojan, unknownPermissions):
-    db_cursor.execute("show columns from detected_other_permissions")
+    unknownPermissions = list()
+    columnsAdded = 0
+    columnsUpdate = 0
+
+    sql = "show columns from detected_other_permissions"
+    db_cursor.execute(sql)
     results = db_cursor.fetchall()
     if not results:
         print("[!!] - No columns retrieved from: detected_other_permissions")
         exit()
     # if
 
-    unknownPermissions = list()
     for i in results:
         if 'scan_id' == i[0] or 'trojan_id' == i[0]:
             pass
@@ -174,53 +191,49 @@ def recordUnknownPermissions(scanId, trojan, unknownPermissions):
             unknownPermissions.append(i[0])
         # if
     # for
-      
-    print(unknownPermissions) # DEBUGGING
+    #print(unknownPermissions) # DEBUGGING
 
     # Display Non-Standard Permissions
     sql = "INSERT INTO detected_other_permissions (scan_id, trojan_id ) VALUES (%s, %s)"
     val = (scanId, trojan)
-    executeQuery(sql, val)
-    db_connection.commit()
 
-    cnt = 0
+    try:
+        db_cursor.execute(sql, val)
+        db_connection.commit()
+    except mysql.connector.Error as err:
+        print("[!!] MySQL Error: {}".format(err))
+    # try
+
     for index in unknownPermissions:
         if index not in unknownPermissions:
-            print(index)
+
             # add new columns to table: detected_other_permissions
+            print(index) # DEBUGGING
             sql = "ALTER TABLE detected_other_permissions add " + index + " VARCHAR(1) NULL DEFAULT NULL"
-            db_cursor.execute(sql)
-            executeQuery(sql, None)
-            db_connection.commit()
-            print("New column added: " + index + ".\n")
-            exit()
+            try:
+                db_cursor.execute(sql)
+                db_connection.commit()
+                columnsAdded = columnsAdded + 1
+
+            except mysql.connector.Error as err:
+                print("[!!] MySQL Error: {}".format(err))
+            # try
         # if
 
         # update column within permission record
         sql = "update detected_other_permissions set " + index + " = 'X' where scan_id = " + scanId
-        executeQuery(sql, None)
-        cnt = cnt + 1
+        try:
+            db_cursor.execute(sql)
+            db_connection.commit()
+            columnsUpdate = columnsUpdate + 1
+
+        except mysql.connector.Error as err:
+            print("[!!] MySQL Error: {}".format(err))
+        # try
     # for
 
-    print(str(cnt) + " non-standard permissions recorded.\n")
-# function
-
-# function
-
-# execute sql query
-def executeQuery(sql, val):
-    results = None
-    try:
-        if not val:
-            results = db_cursor.execute(sql)
-        else:     
-            results = db_cursor.execute(sql, val)
-        # if
-        db_connection.commit()
-    except mysql.connector.Error as err:
-        print("[!!] MySQL Error: {}".format(err))
-        exit()
-    finally:
-        return results
-    # try
+    # display results
+    print("Non-standard permissions columns.")
+    print(str(columnsAdded) + " columns added.")
+    print(str(columnsUpdate) + " columns updated.\n")
 # function

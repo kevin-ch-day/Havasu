@@ -2,7 +2,7 @@ import Zorivis
 
 Zorivis.startDBConn() # start database connection
 
-TROJAN = 100
+TROJAN = 60
 SCAN_ID = Zorivis.getNewScanId() # create scan id #
 
 permissions = Zorivis.readDetectedPermissions()
