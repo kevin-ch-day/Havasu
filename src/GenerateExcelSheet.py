@@ -10,7 +10,8 @@ conn = mysql.connector.connect(
 )
 
 cursor = conn.cursor()
-sql = "SELECT * FROM malware_samples ORDER BY malware_samples.ID ASC"
 
-df_alpha = pd.read_sql_query(sql, conn)
-df_alpha.to_excel('OUTPUT\\ResultOutput.xlsx')
+sql = "select id, name, family, md5 from malware_samples order by id"
+
+df = pd.read_sql_query(sql, conn)
+df.to_excel('Excel_Output.xlsx')

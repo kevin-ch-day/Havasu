@@ -12,7 +12,7 @@ cursor = conn.cursor()
 
 sql = "select *"
 sql = sql + " from detected_standard_permissions "
-sql = sql + " where trojan_id in (60, 61, 62, 101, 171, 172)"
+#sql = sql + " where trojan_id in (100)"
 sql = sql + " order by trojan_id"
 
 sql_query = pd.read_sql_query(sql, conn)
@@ -32,4 +32,4 @@ for column in df_alpha:
   # for
 # for
 
-df_beta.to_excel('RecordedPermissions.xlsx')
+df_beta.to_excel('OUTPUT\\RecordedPermissions.xlsx')

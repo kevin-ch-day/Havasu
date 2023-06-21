@@ -77,7 +77,7 @@ def readDetectedPermissionInput():
 
 # create scan record for trojan id
 def createPermissionRecord(scanId, trojan):
-    print("Scan ID:", scanId, " Trojan ID: ", trojan, "\n")
+    print("Scan ID:", scanId, " Trojan ID: ", trojan)
 
     sql = "INSERT INTO detected_standard_permissions (scan_id, trojan_id ) VALUES (%s, %s)"
     val = (scanId, trojan)
@@ -96,6 +96,7 @@ def classifyPermissions(scan, trojan, permissions):
 
         # check if permission matches the standard permission formatted
         if "android.permission." in index:
+            print(index)
             standardFormatPerms.append(index)
             #print("Permission: " + index) # DEBUGGING
             numStandardPermissions = 1 + numStandardPermissions
@@ -216,7 +217,7 @@ def recordUnknownPermissions(scanId, trojan, unknownPermissions):
         print("[!!] MySQL Error: {}".format(err))
     # try
 
-    print("#2 - Non-standard permissions columns.")
+    print("\n#2 - Non-standard permissions columns.")
     for index in unknownPermissions:
         if index not in tableColumns:
 
