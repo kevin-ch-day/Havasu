@@ -76,21 +76,21 @@ def readDetectedPermissionInput():
 # function
 
 # create scan record for trojan id
-def createPermissionRecord(scanId, trojan):
-    print("Scan ID:", scanId, " Trojan ID: ", trojan)
+def createPermissionRecord(trojan):
+    print("Trojan ID: ", trojan)
 
-    sql = "INSERT INTO detected_standard_permissions (scan_id, trojan_id ) VALUES (%s, %s)"
-    val = (scanId, trojan)
+    sql = "INSERT INTO detected_standard_permissions (id ) VALUES (%s)"
+    val = (trojan, )
     db_cursor.execute(sql, val)
     db_connection.commit()
 # function
 
-def classifyPermissions(scan, trojan, permissions):
+def classifyPermissions(trojan, permissions):
     standardFormatPerms = list()
     unknownPermissions = list()
     unknownPermissionsFound = False
-    numUnknownPermissions = 0
-    numStandardPermissions = 0
+
+    print(permissions)
 
     for index in permissions:
 
@@ -99,31 +99,31 @@ def classifyPermissions(scan, trojan, permissions):
             print(index)
             standardFormatPerms.append(index)
             #print("Permission: " + index) # DEBUGGING
-            numStandardPermissions = 1 + numStandardPermissions
         else:
             unknownPermissions.append(index)
             unknownPermissionsFound = True
         # if
     # for
-    print("Standard Permissions found: "+ str(numStandardPermissions)) # new line
+    print("Standard Permissions found: "+ len(standardFormatPerms)) # new line
 
     if unknownPermissionsFound:
-        numUnknownPermissions = 0
         f = open("OUTPUT\\UnknownPermissionFound.txt", "w")
         try:
            for index in unknownPermissions:
                 #print(index) # debugging
                 f.write(index + "\n")
-                numUnknownPermissions = 1 + numUnknownPermissions
             # for
+
         except IOError as e:
             print("I/O error({0}): {1}".format(e.errno, e.strerror))
             exit()
         # try
-        print("Unknown Permissions found: "+ str(numUnknownPermissions))
+
+        print("Unknown Permissions found: "+ len(unknownPermissionsFound))
     # if
 
-    recordAndroidPermissions(scan, trojan, standardFormatPerms)
+    recordAndroidPermissions(trojan, standardFormatPerms)
+    recordUnknownPermissions(trojan, unknownPermissionsFound)
 # function
 
 # Standard Android Permissions
@@ -139,7 +139,7 @@ def getStandardAndroidPermissionList():
     # if
     
     for i in results:
-        if 'scan_id' == i[0] or 'trojan_id' == i[0]:
+        if 'id' == i[0]:
             pass
         else:
             permissionList.append(i[0])
@@ -149,7 +149,7 @@ def getStandardAndroidPermissionList():
 # function
 
 # Record Android Permissions
-def recordAndroidPermissions(scanId, trojan, permissions):
+def recordAndroidPermissions(trojan, permissions):
     updatedColumns = 0
     unknownPermissions = list()
     standardPermissionList = getStandardAndroidPermissionList()
@@ -167,7 +167,7 @@ def recordAndroidPermissions(scanId, trojan, permissions):
         else:
             try:
                 sql = "UPDATE detected_standard_permissions SET "
-                sql = sql + slicedPermissions + " = 'X' WHERE scan_id = " + scanId
+                sql = sql + slicedPermissions + " = 'X' WHERE id = " + str(trojan)
                 db_cursor.execute(sql)
                 db_connection.commit()
                 updatedColumns = updatedColumns + 1
@@ -182,10 +182,11 @@ def recordAndroidPermissions(scanId, trojan, permissions):
     print("#1 - Standard permission columns.")
     print(str(updatedColumns) + " columns updated.")
 
-    recordUnknownPermissions(scanId, trojan, unknownPermissions)
+    recordNonStandardPermissions(trojan, unknownPermissions)
 # function
 
-def recordUnknownPermissions(scanId, trojan, unknownPermissions):
+def recordNonStandardPermissions(trojan, unknownPermissions):
+    print(unknownPermissions)
     tableColumns = list()
     columnsAdded = 0
     columnsUpdate = 0
@@ -199,7 +200,7 @@ def recordUnknownPermissions(scanId, trojan, unknownPermissions):
     # if
 
     for i in dbResults:
-        if 'scan_id' == i[0] or 'trojan_id' == i[0]:
+        if 'id' == i[0]:
             pass
         else:
             tableColumns.append(i[0])
@@ -208,11 +209,11 @@ def recordUnknownPermissions(scanId, trojan, unknownPermissions):
     #print(unknownPermissions) # DEBUGGING
 
     # Display Non-Standard Permissions
-    sql = "INSERT INTO detected_other_permissions (scan_id, trojan_id ) VALUES (%s, %s)"
-    val = (scanId, trojan)
+    sql = "INSERT INTO detected_other_permissions (id) VALUES (%s)"
+    val = (trojan, )
     try:
         db_cursor.execute(sql, val)
-        db_connection.commit()
+        #db_connection.commit()
     except mysql.connector.Error as err:
         print("[!!] MySQL Error: {}".format(err))
     # try
@@ -226,7 +227,7 @@ def recordUnknownPermissions(scanId, trojan, unknownPermissions):
             sql = "ALTER TABLE detected_other_permissions add " + index + " VARCHAR(1) NULL DEFAULT NULL"
             try:
                 db_cursor.execute(sql)
-                db_connection.commit()
+                #db_connection.commit()
                 columnsAdded = columnsAdded + 1
 
             except mysql.connector.Error as err:
@@ -235,10 +236,10 @@ def recordUnknownPermissions(scanId, trojan, unknownPermissions):
         # if
 
         # update column within permission record
-        sql = "update detected_other_permissions set " + index + " = 'X' where scan_id = " + scanId
+        sql = "update detected_other_permissions set " + index + " = 'X' where id = " + str(trojan)
         try:
             db_cursor.execute(sql)
-            db_connection.commit()
+            #db_connection.commit()
             columnsUpdate = columnsUpdate + 1
 
         except mysql.connector.Error as err:
@@ -248,4 +249,8 @@ def recordUnknownPermissions(scanId, trojan, unknownPermissions):
 
     print(str(columnsAdded) + " columns added.")
     print(str(columnsUpdate) + " columns updated.\n")
+# function
+
+def recordUnknownPermissions(trojan, unknownPermissionsFound):
+    pass
 # function
