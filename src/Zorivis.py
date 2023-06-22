@@ -5,7 +5,6 @@
 
 import mysql.connector
 import pandas as pd
-import random
 
 def startDBConn():
     """ Connect to MySQL database """
@@ -52,22 +51,10 @@ def getTrojanMetaData(id):
   return result[0]
 # function
 
-def getNewScanId():
-    sql = "select max(scan_id) from detected_standard_permissions"
-    db_cursor.execute(sql)
-    result = db_cursor.fetchall()
-    if result[0][0] == None:
-        return str(1000) # Default starting scan id
-    else:
-        return str(result[0][0] + 1) 
-    # if
-# function
-
 # read detected permission from text file
 def readDetectedPermissionInput():
     f = open("INPUT\\DATA_PERMISSION_INPUT.txt", "r")
     temp = list()
-    
     for line in f:
         temp.append(line.strip())
     # for
@@ -77,8 +64,7 @@ def readDetectedPermissionInput():
 
 # create scan record for trojan id
 def createPermissionRecord(trojan):
-    print("Trojan ID: ", trojan)
-
+    print("Trojan ID: " + str(trojan) + "\n")
     sql = "INSERT INTO detected_standard_permissions (id ) VALUES (%s)"
     val = (trojan, )
     db_cursor.execute(sql, val)
@@ -90,10 +76,7 @@ def classifyPermissions(trojan, permissions):
     unknownPermissions = list()
     unknownPermissionsFound = False
 
-    print(permissions)
-
     for index in permissions:
-
         # check if permission matches the standard permission formatted
         if "android.permission." in index:
             print(index)
@@ -104,7 +87,8 @@ def classifyPermissions(trojan, permissions):
             unknownPermissionsFound = True
         # if
     # for
-    print("Standard Permissions found: "+ len(standardFormatPerms)) # new line
+
+    print("\nStandard Permissions found: "+ str(len(standardFormatPerms)))
 
     if unknownPermissionsFound:
         f = open("OUTPUT\\UnknownPermissionFound.txt", "w")
@@ -119,7 +103,7 @@ def classifyPermissions(trojan, permissions):
             exit()
         # try
 
-        print("Unknown Permissions found: "+ len(unknownPermissionsFound))
+        print("Unknown Permissions found: " + str(len(unknownPermissions)))
     # if
 
     recordAndroidPermissions(trojan, standardFormatPerms)
@@ -179,14 +163,13 @@ def recordAndroidPermissions(trojan, permissions):
     # for
     print()
 
-    print("#1 - Standard permission columns.")
+    print("** Standard permission columns **")
     print(str(updatedColumns) + " columns updated.")
 
     recordNonStandardPermissions(trojan, unknownPermissions)
 # function
 
 def recordNonStandardPermissions(trojan, unknownPermissions):
-    print(unknownPermissions)
     tableColumns = list()
     columnsAdded = 0
     columnsUpdate = 0
@@ -218,7 +201,7 @@ def recordNonStandardPermissions(trojan, unknownPermissions):
         print("[!!] MySQL Error: {}".format(err))
     # try
 
-    print("\n#2 - Non-standard permissions columns.")
+    print("\n** Non-standard permissions columns **")
     for index in unknownPermissions:
         if index not in tableColumns:
 
