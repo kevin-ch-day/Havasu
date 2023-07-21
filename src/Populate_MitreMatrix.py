@@ -10,20 +10,18 @@ conn = mysql.connector.connect(
 cursor = conn.cursor()
 
 def getMitreColumns():
+  print("getMitreColumns()")
   columns = set() # empty set
 
-  # sql query for generating MITRE ATT&CK column names
-  sql = "select DISTINCT technique_id, tactic_description"
-  sql = sql + " from mitre_detection_temp"
-  sql = sql + " order by technique_id, technique_description, tactic_description"
+  sql = "select DISTINCT Tactic, ATTACK_ID"
+  sql = sql + " from mitre_detection"
+  sql = sql + " order by Tactic, ATTACK_ID, Description"
 
   results = pd.read_sql_query(sql, conn)
   records = pd.DataFrame(results)
 
   for index, row in records.iterrows():
-      technique_id = row[0]
-      tactic_description = row[1]
-      col = tactic_description + " " + technique_id
+      col = row[0] + " " + row[1]
       columns.add(col)
   # for
 
@@ -31,21 +29,22 @@ def getMitreColumns():
 # function
 
 def getMitreDict():
+  print("getMitreDict()")
 
   dict_mitre = dict()  
   for i in getMitreColumns():
     dict_mitre[i] = list()
   # for
 
-  sql = "SELECT technique_id, tactic_description, trojan_id"
-  sql = sql + " FROM mitre_detection_temp"
-  sql = sql + " order by technique_id, tactic_description, trojan_id"
+  sql = "SELECT Tactic, ATTACK_ID, trojan_id"
+  sql = sql + " FROM mitre_detection"
+  sql = sql + " order by trojan_id, Tactic, ATTACK_ID"
 
   results = pd.read_sql_query(sql, conn)
   df_samples = pd.DataFrame(results)
 
   for index, row in df_samples.iterrows():
-    key = row[1] + " " + row[0]
+    key = row[0] + " " + row[1]
     items = dict_mitre[key]
     items.append(row[2])
     items.sort()
@@ -56,6 +55,8 @@ def getMitreDict():
 # function
 
 def getMitreMatrixColumns():
+  print("getMitreMatrixColumns()")
+
   sql = "SHOW COLUMNS FROM mitre_matrix"
   results = pd.read_sql_query(sql, conn)
   
@@ -66,7 +67,9 @@ def getMitreMatrixColumns():
 # function
 
 def getSampleIds():
-  sql = "select DISTINCT trojan_id from mitre_detection_temp"
+  print("getSampleIds()")
+
+  sql = "select DISTINCT trojan_id from mitre_detection"
   results = pd.read_sql_query(sql, conn)
   records = pd.DataFrame(results)
   
@@ -81,6 +84,8 @@ def getSampleIds():
 # function
 
 def addIdsMitreMatrix():
+  print("addIdsMitreMatrix()")
+
   samples = getSampleIds()
 
   for index in samples:
@@ -95,6 +100,8 @@ def addIdsMitreMatrix():
       print("Added sample id: " + str(index))
     # if
   # for
+
+  print() # newline
 # function
 
 
@@ -115,6 +122,7 @@ def main_driver():
       conn.commit()
     # if
   # for
+  print() # newline
 
   for key in dict_mitreMatrix:
     print(key)

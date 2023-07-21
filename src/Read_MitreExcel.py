@@ -1,5 +1,6 @@
 import mysql.connector
 import pandas as pd
+import openpyxl as xl
 
 conn = mysql.connector.connect(
   host="localhost",
@@ -9,38 +10,32 @@ conn = mysql.connector.connect(
 )
 cursor = conn.cursor()
 
-EXCEL_WORKBOOK_NAME = 'MitreExcelInput.xlsx'
+EXCEL_FILE_NAME = "TEST-EXCEL-BOOK.xlsx"
+  
+wb = xl.load_workbook(EXCEL_FILE_NAME)
 
-def readExcelMitreSheets():
-  sampleList = [61, 62]
-  sampleList.sort()
+for i in wb.sheetnames:
+    print("Worksheet: ", i)
+    values = list()
+    df = pd.read_excel(EXCEL_FILE_NAME, sheet_name = i)
 
-  for i in sampleList:
-    sheet = 'Brata ' + str(i)
-    print(sheet)
-
-    df = pd.read_excel(EXCEL_WORKBOOK_NAME, sheet_name = sheet)
-
-    sql = "INSERT INTO mitre_detection_temp"
-    sql = sql + " (trojan_id, technique_id, technique_description, tactic_description,"
-    sql = sql + " malicious_indicators, suspicious_indicators, informative_indicators)"
+    sql = "INSERT INTO mitre_detection"
+    sql = sql + " (Trojan_ID, Tactic, ATTACK_ID, Description, Malicious_Indicators, Suspicious_Indicators, Informative_Indicators)"
     sql = sql + " VALUES (%s, %s, %s, %s, %s, %s, %s)"
 
     for index, row in df.iterrows():
-      id = row[0]
+      id = i[7:]
+      tactic = row[0]
       attack = row[1]
-      tech = row[2]
-      tact = row[3]
-      mali = row[4]
-      susp = row[5]
-      info = row[6]
+      desc = row[2]
+      mali = row[3]
+      susp = row[4]
+      info = row[5]
 
-      val = (id, attack, tech, tact, mali, susp, info)
-      cursor.execute(sql, val)
+      data = (id, tactic, attack, desc, mali, susp, info)
+      print(data) # BDEGUGGING
+      values.append(data)
     # for
+
+    print() # newline
   # for
-
-  conn.commit()
-# function
-
-readExcelMitreSheets()

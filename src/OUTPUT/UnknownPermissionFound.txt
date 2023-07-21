@@ -1,6 +1,3 @@
-ajzqptz.inhn.lksnuit
-bptxbi.tycut.ieifouc
-gmlne.pbshyrd.ccqyptpl
-mgfmn.gifgrdxk.ffggr
-ssbfyby.vnep.llcvc
-zixmwcfc.kqzzy.hgpg
+com.android.vending.BILLING
+com.google.android.finsky.permission.BIND_GET_INSTALL_REFERRER_SERVICE
+com.google.android.gms.permission.AD_ID

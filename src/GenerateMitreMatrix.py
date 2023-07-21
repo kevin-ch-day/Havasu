@@ -12,7 +12,7 @@ conn = mysql.connector.connect(
 cursor = conn.cursor()
 
 sql = "select * from mitre_matrix"
-sql = sql + " where trojan_id in (60, 61, 62, 101, 171, 172)"
+#sql = sql + " where trojan_id in (60, 61, 62, 101, 171, 172)"
 sql = sql + " order by trojan_id"
 
 df_alpha = pd.read_sql_query(sql, conn)

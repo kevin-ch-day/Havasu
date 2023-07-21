@@ -12,16 +12,16 @@ cursor = conn.cursor()
 
 sql = "select *"
 sql = sql + " from detected_standard_permissions "
-#sql = sql + " where trojan_id in (100)"
-sql = sql + " order by trojan_id"
+#sql = sql + " where id in (100)"
+sql = sql + " order by id"
 
 sql_query = pd.read_sql_query(sql, conn)
 df_alpha = pd.DataFrame(sql_query)
 df_beta = pd.DataFrame()
 
-df_alpha = df_alpha.drop(columns=['scan_id'])
-df_beta['trojan_id'] = df_alpha['trojan_id']
-df_alpha = df_alpha.drop(columns=['trojan_id'])
+#df_alpha = df_alpha.drop(columns=['scan_id'])
+df_beta['ID'] = df_alpha['ID']
+df_alpha = df_alpha.drop(columns=['ID'])
 
 for column in df_alpha:
   for cell in df_alpha[column]:

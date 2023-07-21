@@ -2,8 +2,8 @@ import Zorivis
 
 Zorivis.startDBConn() # start database connection
 
-TROJAN = 2
-permissions = Zorivis.readDetectedPermissionInput()
+TROJAN = 110
+permissions = Zorivis.readDetectedPermissions()
 permissions.sort()
 
 # create trojan record for permissions
