@@ -1,6 +1,7 @@
 # Zorivis.py
 # Author: kevin.ch.day@gmail.com
-# Date last updated: 5/22/2023
+# Date last updated: 8/10/2023
+#
 # Android Permissions Source: https://developer.android.com/reference/android/Manifest.permission
 
 import mysql.connector
@@ -79,7 +80,7 @@ def classifyPermissions(trojan, permissions):
     # for
 
     if unknownPermissionsFound:
-        fUnknownPermissions = open("OUTPUT\\UnknownPermissionFound.txt", "w")
+        fUnknownPermissions = open("OUTPUT\\"+trojan+"-UnknownPerms.txt", "w")
         try:
            for i in unknownPermissions:
                 #print(index) # DEBUGGING

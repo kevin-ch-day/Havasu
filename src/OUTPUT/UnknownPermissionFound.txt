@@ -1,3 +1,2 @@
-com.android.vending.BILLING
+com.google.android.c2dm.permission.RECEIVE
 com.google.android.finsky.permission.BIND_GET_INSTALL_REFERRER_SERVICE
-com.google.android.gms.permission.AD_ID

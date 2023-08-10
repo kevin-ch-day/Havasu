@@ -15,13 +15,17 @@ sql = "select * from mitre_matrix"
 #sql = sql + " where trojan_id in (60, 61, 62, 101, 171, 172)"
 sql = sql + " order by trojan_id"
 
-df_alpha = pd.read_sql_query(sql, conn)
+df_raw = pd.read_sql_query(sql, conn)
+
+cols = df_raw.columns.tolist()
+cols.sort()
+cols.remove('trojan_id')
+
 df_beta = pd.DataFrame()
+df_beta['trojan_id'] = df_raw['trojan_id']
+df_alpha = df_raw.drop(columns=['trojan_id'])
 
-df_beta['trojan_id'] = df_alpha['trojan_id']
-df_alpha = df_alpha.drop(columns=['trojan_id'])
-
-for column in df_alpha:
+for column in cols:
   for cell in df_alpha[column]:
     if cell is not None:
       df_beta[column] = df_alpha[column]
