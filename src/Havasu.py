@@ -92,7 +92,6 @@ def classifyPermissions(trojan, permissions):
         # try
     # if
 
-    recordUnknownPermissions(trojan, unknownPermissions)
     print("Unknown Permissions found: ", len(unknownPermissions))
 
     recordAndroidPermissions(trojan, standardFormatPerms)
@@ -160,11 +159,11 @@ def recordNonStandardPermissions(trojan, unknownPermissions):
     dbColumns = list()
     newColumns = updatedColumns = 0
 
-    sql = "show columns from detected_other_permissions"
+    sql = "show columns from unknown_permissions"
     db_cursor.execute(sql)
     dbResults = db_cursor.fetchall()
     if not dbResults:
-        print("[!!] - No columns retrieved from: detected_other_permissions")
+        print("[!!] - No columns retrieved from: unknown_permissions")
         exit()
     # if
 
@@ -178,7 +177,7 @@ def recordNonStandardPermissions(trojan, unknownPermissions):
     #print(unknownPermissions) # DEBUGGING
 
     # Display Non-Standard Permissions
-    sql = "INSERT INTO detected_other_permissions (id) VALUES (%s)"
+    sql = "INSERT INTO unknown_permissions (id) VALUES (%s)"
     val = (trojan, )
     try:
         db_cursor.execute(sql, val)
@@ -190,9 +189,9 @@ def recordNonStandardPermissions(trojan, unknownPermissions):
     print("\n** Non-standard permissions columns **")
     for index in unknownPermissions:
         if index not in dbColumns:
-            # add new columns to table: detected_other_permissions
+            # add new columns to table: unknown_permissions
             print(index) # DEBUGGING
-            sql = "ALTER TABLE detected_other_permissions add " + index + " VARCHAR(1) NULL DEFAULT NULL"
+            sql = "ALTER TABLE unknown_permissions add " + index + " VARCHAR(1) NULL DEFAULT NULL"
             try:
                 db_cursor.execute(sql)
                 db_connection.commit()
@@ -204,7 +203,7 @@ def recordNonStandardPermissions(trojan, unknownPermissions):
         # if
 
         # update column within permission record
-        sql = "update detected_other_permissions set " + index + " = 'X' where id = " + str(trojan)
+        sql = "update unknown_permissions set " + index + " = 'X' where id = " + str(trojan)
         try:
             db_cursor.execute(sql)
             db_connection.commit()
@@ -217,13 +216,4 @@ def recordNonStandardPermissions(trojan, unknownPermissions):
 
     print(str(updatedColumns) + " columns added.")
     print(str(updatedColumns) + " columns updated.\n")
-# function
-
-def recordUnknownPermissions(trojan, unknownPermissions):
-    print("\n** Recording unknown Android permissions **")
-    sql = "INSERT INTO detected_unknown_permissions (id, permission_name) VALUES (%s, %s)"
-    for i in unknownPermissions:
-        val = (trojan, i)
-        db_cursor.execute(sql, val)
-    # for
 # function

@@ -1,16 +1,16 @@
-import Zorivis
+import Havasu
 
-Zorivis.startDBConn() # start database connection
+Havasu.startDBConn() # start database connection
 
 TROJAN = 90
-permissions = Zorivis.readDetectedPermissions()
+permissions = Havasu.readDetectedPermissions()
 permissions.sort()
 
 # create trojan record for permissions
-Zorivis.createPermissionRecord(TROJAN)
+Havasu.createPermissionRecord(TROJAN)
 
 # update record for permissions with detected permissions
-Zorivis.classifyPermissions(TROJAN, permissions)
+Havasu.classifyPermissions(TROJAN, permissions)
 
 # end database connection
-Zorivis.endDBConn()
+Havasu.endDBConn()
