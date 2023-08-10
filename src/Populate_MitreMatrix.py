@@ -9,13 +9,13 @@ conn = mysql.connector.connect(
 
 cursor = conn.cursor()
 
-def getMitreColumns():
-  print("getMitreColumns()")
+def loadMitreData():
+  print("loadMitreData()")
   columns = set() # empty set
 
-  sql = "select DISTINCT Tactic, ATTACK_ID"
+  sql = "select distinct description, attack_id"
   sql = sql + " from mitre_detection"
-  sql = sql + " order by Tactic, ATTACK_ID, Description"
+  sql = sql + " order by description, attack_id"
 
   results = pd.read_sql_query(sql, conn)
   records = pd.DataFrame(results)
@@ -32,19 +32,27 @@ def getMitreDict():
   print("getMitreDict()")
 
   dict_mitre = dict()  
-  for i in getMitreColumns():
+  for i in loadMitreData():
     dict_mitre[i] = list()
   # for
 
-  sql = "SELECT Tactic, ATTACK_ID, trojan_id"
-  sql = sql + " FROM mitre_detection"
-  sql = sql + " order by trojan_id, Tactic, ATTACK_ID"
+  print("\nLoading Mitre Data") # newline
+  print("---------------") # newline
+  for k in dict_mitre:
+    print(k)
+   # for
+  print() # newline
+
+  sql = "select description, ATTACK_ID, trojan_id"
+  sql = sql + " from mitre_detection"
+  sql = sql + " order by trojan_id, description, ATTACK_ID"
 
   results = pd.read_sql_query(sql, conn)
   df_samples = pd.DataFrame(results)
 
   for index, row in df_samples.iterrows():
     key = row[0] + " " + row[1]
+    #print(key)
     items = dict_mitre[key]
     items.append(row[2])
     items.sort()
