@@ -2,7 +2,7 @@ import Zorivis
 
 Zorivis.startDBConn() # start database connection
 
-TROJAN = 85
+TROJAN = 90
 permissions = Zorivis.readDetectedPermissions()
 permissions.sort()
 

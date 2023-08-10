@@ -45,7 +45,7 @@ def endDBConn():
 
 # read detected permission from text file
 def readDetectedPermissions():
-    fPERMISSION_INPUT = open("INPUT\\DATA_PERMISSION_INPUT.txt", "r")
+    fPERMISSION_INPUT = open("INPUT\\APK_PERMISSIONS.txt", "r")
     buff = list()
     for p in fPERMISSION_INPUT:
         buff.append(p.strip())
@@ -80,7 +80,7 @@ def classifyPermissions(trojan, permissions):
     # for
 
     if unknownPermissionsFound:
-        fUnknownPermissions = open("OUTPUT\\"+trojan+"-UnknownPerms.txt", "w")
+        fUnknownPermissions = open("OUTPUT\\"+str(trojan)+"-UnknownPerms.txt", "w")
         try:
            for i in unknownPermissions:
                 #print(index) # DEBUGGING
