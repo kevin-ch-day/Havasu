@@ -156,10 +156,10 @@ def recordAndroidPermissions(trojan, permissions):
 # function
 
 def recordNonStandardPermissions(trojan, unknownPermissions):
-    dbColumns = list()
-    newColumns = updatedColumns = 0
+    dbCols = list()
+    addedCols = updatedCols = 0
 
-    sql = "show columns from unknown_permissions"
+    sql = "show columns from detected_unknown_permissions"
     db_cursor.execute(sql)
     dbResults = db_cursor.fetchall()
     if not dbResults:
@@ -171,13 +171,13 @@ def recordNonStandardPermissions(trojan, unknownPermissions):
         if 'id' == i[0]:
             pass
         else:
-            dbColumns.append(i[0])
+            dbCols.append(i[0])
         # if
     # for
     #print(unknownPermissions) # DEBUGGING
 
-    # Display Non-Standard Permissions
-    sql = "INSERT INTO unknown_permissions (id) VALUES (%s)"
+    # Create record for APK in table
+    sql = "INSERT INTO detected_unknown_permissions (id) VALUES (%s)"
     val = (trojan, )
     try:
         db_cursor.execute(sql, val)
@@ -186,34 +186,34 @@ def recordNonStandardPermissions(trojan, unknownPermissions):
         print("[!!] MySQL Error: {}".format(err))
     # try
 
-    print("\n** Non-standard permissions columns **")
+    print("\n** Detected unknown permissions columns **")
     for index in unknownPermissions:
-        if index not in dbColumns:
-            # add new columns to table: unknown_permissions
-            print(index) # DEBUGGING
-            sql = "ALTER TABLE unknown_permissions add " + index + " VARCHAR(1) NULL DEFAULT NULL"
+        if index not in dbCols:
+
+            # add new columns to table
+            print("Adding new column: ", index) # DEBUGGING
+            sql = "ALTER TABLE detected_unknown_permissions add " + index + " VARCHAR(1) NULL DEFAULT NULL"
+
             try:
                 db_cursor.execute(sql)
                 db_connection.commit()
-                newColumns = newColumns + 1
-
+                addedCols = addedCols + 1
             except mysql.connector.Error as err:
                 print("[!!] MySQL Error: {}".format(err))
             # try
         # if
 
         # update column within permission record
-        sql = "update unknown_permissions set " + index + " = 'X' where id = " + str(trojan)
+        sql = "update detected_unknown_permissions set " + index + " = 'X' where id = " + str(trojan)
         try:
             db_cursor.execute(sql)
             db_connection.commit()
-            updatedColumns = updatedColumns + 1
-
+            updatedCols = updatedCols + 1
         except mysql.connector.Error as err:
             print("[!!] MySQL Error: {}".format(err))
         # try
     # for
 
-    print(str(updatedColumns) + " columns added.")
-    print(str(updatedColumns) + " columns updated.\n")
+    print(str(addedCols) + " columns added.")
+    print(str(updatedCols) + " columns updated.\n")
 # function
