@@ -10,9 +10,8 @@ conn = mysql.connector.connect(
 )
 cursor = conn.cursor()
 
-sql = "select *"
-sql = sql + " from detected_standard_permissions "
-sql = sql + " where id in (63, 73, 74, 78, 79, 84, 85, 88, 89, 90)"
+sql = "select * from detected_standard_permissions "
+sql = sql + " where id in (66, 67, 68, 69)"
 sql = sql + " order by id"
 
 sql_query = pd.read_sql_query(sql, conn)

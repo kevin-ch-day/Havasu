@@ -9,11 +9,13 @@ conn = mysql.connector.connect(
   database="cyberops_capstone_android"
 )
 
-EXCEL_FILE_NAME = "Main.xlsx"
+EXCEL_FILE = "OUTPUT\\Output-Excel.xlsx"
 
 cursor = conn.cursor()
 
-sql = "select * from malware_samples where family = 'Cerberus' order by id"
+sql = "SELECT * FROM malware_samples WHERE family = 'ERMAC'"
+
+#sql = "SELECT * FROM mobfs_analysis WHERE id in (66, 67, 68, 69)"
 
 df = pd.read_sql_query(sql, conn)
-df.to_excel(EXCEL_FILE_NAME)
+df.to_excel(EXCEL_FILE)
