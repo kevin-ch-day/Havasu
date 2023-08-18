@@ -10,11 +10,13 @@ where family is not null
 GROUP by Family
 
 -- Dataset Label
-SELECT x.id,
-    x.Kaspersky_Label Kaspersky,
-    x.Microsoft_Label Microsoft
-FROM x.malware_samples
-WHERE x.family = 'BlackRock'
+SELECT ID,
+    Kaspersky_Label Kaspersky,
+    --Microsoft_Label Microsoft,
+    VirusTotal_DetectionRatio,
+    HybridAnalysis_AV_Detection
+FROM malware_samples
+WHERE family = 'CERBERUS';
 
 -- MobSF Security Scorecard by family
 SELECT y.id,

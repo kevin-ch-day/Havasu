@@ -11,6 +11,17 @@ def main(argv):
 
     cursor = conn.cursor()
 
+    sql = "SELECT ID, Kaspersky_Label, "
+    sql = sql + " VirusTotal_DetectionRatio, HybridAnalysis_AV_Detection "
+    sql = sql + "FROM malware_samples "
+    sql = sql + "WHERE family = '" + argv[0] + "' order by id"
+
+    print("\n" + sql + "\n")
+
+    cursor.execute(sql)
+    results = cursor.fetchall()
+    printResults(results, "\nDataset Labels\n")
+
     sql = "SELECT y.id, y.security_score score, y.grade, "
     sql = sql + "y.trackers_detections tracker, y.high_risks, y.medium_risks "
     sql = sql + "FROM malware_samples x JOIN mobfs_analysis y ON y.id = x.id "
@@ -18,7 +29,7 @@ def main(argv):
 
     cursor.execute(sql)
     results = cursor.fetchall()
-    printResults(results, "\nMobSF Security Score\n")
+    #printResults(results, "\nMobSF Security Score\n")
 
     sql = "select x.id, "
     sql = sql + "x.size, "
@@ -35,7 +46,7 @@ def main(argv):
     cursor.execute(sql)
     results = cursor.fetchall()
 
-    printResults(results, "\nStatic Analysis\n")
+    #printResults(results, "\nStatic Analysis\n")
 # main
 
 def printResults(results, chartTitle):
