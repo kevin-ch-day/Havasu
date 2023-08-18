@@ -10,6 +10,16 @@ def main(argv):
     database="cyberops_capstone_android")
 
     cursor = conn.cursor()
+
+    sql = "SELECT y.id, y.security_score score, y.grade, "
+    sql = sql + "y.trackers_detections tracker, y.high_risks, y.medium_risks "
+    sql = sql + "FROM malware_samples x JOIN mobfs_analysis y ON y.id = x.id "
+    sql = sql + "where x.family = '" + argv[0] + "' order by x.id"
+
+    cursor.execute(sql)
+    results = cursor.fetchall()
+    printResults(results, "\nMobSF Security Score\n")
+
     sql = "select x.id, "
     sql = sql + "x.size, "
     sql = sql + "y.activities, "
@@ -25,7 +35,11 @@ def main(argv):
     cursor.execute(sql)
     results = cursor.fetchall()
 
-    print() # newline
+    printResults(results, "\nStatic Analysis\n")
+# main
+
+def printResults(results, chartTitle):
+    print(chartTitle) # newline
     for row in results:
         buff = ""
         cnt = 0
@@ -42,9 +56,7 @@ def main(argv):
 
         print(buff)
     # for
-
-    print() # newline
-# main
+# function
 
 if __name__ == "__main__":
     if not sys.argv[1:]:
@@ -53,4 +65,6 @@ if __name__ == "__main__":
     else:
         main(sys.argv[1:])
     # if
+
+    print() # newline
 # if

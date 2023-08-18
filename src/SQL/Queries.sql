@@ -22,7 +22,7 @@ SELECT y.id,
     y.grade,
     y.trackers_detections tracker,
     y.high_risks,
-    y.medium_risk
+    y.medium_risks
 FROM malware_samples x
 	JOIN mobfs_analysis y
     	ON y.id = x.id
@@ -38,7 +38,7 @@ select x.id,
 from malware_samples x
 	join mobfs_analysis y
 		on y.id = x.id
-where x.fami;y = 'brata'
+where x.family = 'brata'
 order by x.id;
 
 -- Dangerous Permissions
