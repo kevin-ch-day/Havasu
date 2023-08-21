@@ -12,11 +12,11 @@ GROUP by Family
 -- Dataset Label
 SELECT ID,
     Kaspersky_Label Kaspersky,
-    --Microsoft_Label Microsoft,
+    HybridAnalysis_Label HybridAnalysis,
     VirusTotal_DetectionRatio,
     HybridAnalysis_AV_Detection
 FROM malware_samples
-WHERE family = 'CERBERUS';
+WHERE family = 'Anubis';
 
 -- MobSF Security Scorecard by family
 SELECT y.id,
