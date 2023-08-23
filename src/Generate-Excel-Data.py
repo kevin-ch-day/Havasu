@@ -13,7 +13,7 @@ EXCEL_FILE = "OUTPUT\\Output-Excel.xlsx"
 
 cursor = conn.cursor()
 
-sql = "SELECT * FROM malware_samples WHERE family = 'FluBot'"
+sql = "SELECT * FROM malware_samples WHERE family = 'SOVA'"
 
 #sql = "SELECT * FROM mobfs_analysis WHERE id in (66, 67, 68, 69)"
 

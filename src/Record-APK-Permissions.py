@@ -2,7 +2,7 @@ import Havasu
 
 Havasu.startDBConn() # start database connection
 
-TROJAN = 11
+TROJAN = 44
 permissions = Havasu.readDetectedPermissions()
 permissions.sort()
 

@@ -12,7 +12,7 @@ conn = mysql.connector.connect(
 cursor = conn.cursor()
 
 sql = "select * from mitre_matrix "
-sql = sql + " where trojan_id in (55, 80, 81, 83, 103, 104, 105)"
+sql = sql + " where trojan_id in (44, 45, 114, 115)"
 sql = sql + " order by trojan_id"
 
 df_raw = pd.read_sql_query(sql, conn)
@@ -34,4 +34,4 @@ for column in cols:
   # for
 # for
 
-df_beta.to_excel('Mitre_Matrix.xlsx')
+df_beta.to_excel('Mitre-Matrix.xlsx')
