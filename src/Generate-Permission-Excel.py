@@ -10,8 +10,10 @@ conn = mysql.connector.connect(
 )
 cursor = conn.cursor()
 
+sampleSet = (55, 80, 81, 83, 103, 104, 105)
+
 sql = "select * from detected_standard_permissions "
-sql = sql + " where id in (40, 41, 120, 121)"
+sql = sql + " where id in " + str(sampleSet)
 sql = sql + " order by id"
 
 sql_query = pd.read_sql_query(sql, conn)
@@ -35,7 +37,7 @@ df_beta.to_excel('OUTPUT\\Detected-Standard-Permissions.xlsx')
 
 
 sql = "select * from detected_unknown_permissions "
-sql = sql + " where id in (66, 67, 68, 69)"
+sql = sql + " where id in " + str(sampleSet)
 sql = sql + " order by id"
 
 sql_query = pd.read_sql_query(sql, conn)

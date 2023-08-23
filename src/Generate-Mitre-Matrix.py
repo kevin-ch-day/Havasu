@@ -11,8 +11,8 @@ conn = mysql.connector.connect(
 
 cursor = conn.cursor()
 
-sql = "select * from mitre_matrix"
-sql = sql + " where trojan_id in (66, 67, 68, 69)"
+sql = "select * from mitre_matrix "
+sql = sql + " where trojan_id in (55, 80, 81, 83, 103, 104, 105)"
 sql = sql + " order by trojan_id"
 
 df_raw = pd.read_sql_query(sql, conn)

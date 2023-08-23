@@ -13,7 +13,7 @@ cursor = conn.cursor()
 def main():
     hashes = list()
 
-    f = open("newHashes.txt")
+    f = open('INPUT\\newHashes.txt')
     for i in f:
         hashes.append(i.strip())
     # for
