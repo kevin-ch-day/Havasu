@@ -15,11 +15,13 @@ sampleSet = (55, 80, 81, 83, 103, 104, 105)
 flubot = (8, 9, 10, 11, 21, 22, 29, 30, 31, 32, 33, 34, 35, 36, 37)
 sova = (44, 45, 114, 115)
 brata = (6, 7, 18, 19, 20, 117, 118)
+vultur = (1, )
 
 
 sql = "select * "
 sql = sql + "from detected_standard_permissions "
-sql = sql + "where id in " + str(brata) + " "
+sql = sql + "where id in " + str(vultur) + " "
+sql = sql + "where id = 1 "
 sql = sql + "order by id"
 
 sql_query = pd.read_sql_query(sql, conn)

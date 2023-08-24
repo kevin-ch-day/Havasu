@@ -4,7 +4,7 @@ FROM malware_samples
 WHERE family = 'Xenomorph';
 
 -- family and # of samples
-select family, count(*)
+select family, count(*) numFamilies
 from malware_samples
 where family is not null
 GROUP by Family
