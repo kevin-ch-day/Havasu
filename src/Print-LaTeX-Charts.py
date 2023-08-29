@@ -34,6 +34,7 @@ def main(argv):
 
     sql = "select x.id, "
     sql = sql + "x.size, "
+    sql = sql + "x.Target_SDK, x.Minimum_SDK,"
     sql = sql + "y.activities, "
     sql = sql + "y.services, "
     sql = sql + "y.receivers, "
