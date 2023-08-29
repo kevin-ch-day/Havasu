@@ -12,9 +12,23 @@ cursor = conn.cursor()
 
 SAMPLE_SET = "(63, 73, 74, 79, 84, 85, 89, 90, 93, 98)"
 
+<<<<<<< HEAD
 sql = "select * from detected_standard_permissions "
 sql = sql + " where id in " + str(SAMPLE_SET)
 sql = sql + " order by id"
+=======
+flubot = (8, 9, 10, 11, 21, 22, 29, 30, 31, 32, 33, 34, 35, 36, 37)
+sova = (44, 45, 114, 115)
+brata = (6, 7, 18, 19, 20, 117, 118)
+vultur = (1, )
+
+
+sql = "select * "
+sql = sql + "from detected_standard_permissions "
+sql = sql + "where id in " + str(vultur) + " "
+sql = sql + "where id = 1 "
+sql = sql + "order by id"
+>>>>>>> c93f3aed4f0bb5fa9558c034334597fd9a36292b
 
 sql_query = pd.read_sql_query(sql, conn)
 df_alpha = pd.DataFrame(sql_query)

@@ -2,15 +2,27 @@ import mysql.connector
 import pandas as pd
 import sys
 
-def main(argv):
-    print(argv[0])
-# main
+import mysql.connector
+import pandas as pd
+import random
 
-if __name__ == "__main__":
-    if not sys.argv[1:]:
-       print("Error")
-       exit()
-    else:
-        main(sys.argv[1:])
-    # if
-# if
+conn = mysql.connector.connect(
+  host="localhost",
+  user="root",
+  #password="yourpassword",
+  database="cyberops_capstone_android"
+)
+cursor = conn.cursor()
+
+sql = "select id from malware_samples "
+sql = sql + "where family = 'Brata' order by id"
+
+cursor.execute(sql)
+result = cursor.fetchall()
+
+s = "("
+for x in result:
+  s = s + str(x[0]) + ", "
+s = s + ")"
+
+print(s)

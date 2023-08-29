@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 android.permission.ACCESS_NETWORK_STATE
 android.permission.CALL_PHONE
 android.permission.FOREGROUND_SERVICE
@@ -19,3 +20,16 @@ android.permission.USE_FULL_SCREEN_INTENT
 android.permission.WAKE_LOCK
 android.permission.WRITE_EXTERNAL_STORAGE
 android.permission.WRITE_SYNC_SETTINGS
+=======
+android.permission.CAMERA
+android.permission.DISABLE_KEYGUARD
+android.permission.FOREGROUND_SERVICE
+android.permission.INTERNET
+android.permission.QUERY_ALL_PACKAGES
+android.permission.RECEIVE_BOOT_COMPLETED
+android.permission.REQUEST_INSTALL_PACKAGES
+android.permission.SYSTEM_ALERT_WINDOW
+android.permission.USE_BIOMETRIC
+android.permission.WAKE_LOCK
+android.permission.USE_FINGERPRINT
+>>>>>>> c93f3aed4f0bb5fa9558c034334597fd9a36292b
