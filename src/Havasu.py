@@ -1,7 +1,5 @@
-# Zorivis.py
+# Havasu.py
 # Author: kevin.ch.day@gmail.com
-# Date last updated: 8/10/2023
-#
 # Android Permissions Source: https://developer.android.com/reference/android/Manifest.permission
 
 import mysql.connector
@@ -216,4 +214,238 @@ def recordNonStandardPermissions(trojan, unknownPermissions):
 
     print(str(addedCols) + " columns added.")
     print(str(updatedCols) + " columns updated.\n")
+# function
+
+def outputStandardPermissions(sample_set):
+  EXCEL_FILE = 'OUTPUT\\Android-Permissions.xlsx'
+  
+  sql = "select * from detected_standard_permissions "
+  sql = sql + " where id in " + str(sample_set)
+  sql = sql + " order by id"
+
+  sql_query = pd.read_sql_query(sql, db_connection)
+  df_alpha = pd.DataFrame(sql_query)
+  df_beta = pd.DataFrame()
+
+  df_beta['ID'] = df_alpha['ID']
+  df_alpha = df_alpha.drop(columns=['ID'])
+
+  for column in df_alpha:
+    for cell in df_alpha[column]:
+      if cell is not None:
+        df_beta[column] = df_alpha[column]
+        break
+      # if
+    # for
+  # for
+
+  df_beta.to_excel(EXCEL_FILE)
+# function
+
+def outputUnknownPermissions(sample_set):
+  EXCEL_FILE = 'OUTPUT\\Unknown-Permissions.xlsx'
+
+  sql = "select * from detected_unknown_permissions "
+  sql = sql + " where id in " + sample_set
+  sql = sql + " order by id"
+
+  sql_query = pd.read_sql_query(sql, db_connection)
+  df_alpha = pd.DataFrame(sql_query)
+  df_beta = pd.DataFrame()
+
+  df_beta['ID'] = df_alpha['ID']
+  df_alpha = df_alpha.drop(columns=['ID'])
+
+  for column in df_alpha:
+    for cell in df_alpha[column]:
+      if cell is not None:
+        df_beta[column] = df_alpha[column]
+        break
+      # if
+    # for
+  # for
+
+  df_beta.to_excel(EXCEL_FILE)
+# function
+
+## NORMAL PERMISSIONS
+def outputNormalPermissions(sample_set):
+  EXCEL_FILE = 'OUTPUT\\Normal-Permissions.xlsx'
+
+  sql = "select name from android_permissions where Protection_level = 'Normal' order by name"
+  db_cursor.execute(sql)
+  results = db_cursor.fetchall()
+  normalPermissionsColumns = "'"
+  buff = list()
+  cnt = 0
+
+  for x in results:    
+      if(x[0] == "ID"):
+        print(x[0])
+      elif(cnt == (len(results)-1)):
+        normalPermissionsColumns = normalPermissionsColumns + x[0] + "'"
+        #print(cnt, x[0])
+      else:
+        normalPermissionsColumns = "'" + normalPermissionsColumns + x[0] + "', "
+        #print(cnt, x[0])
+      # if
+
+      buff.append(x[0])
+      cnt = cnt + 1
+  # for
+
+  ## ADD COLUMN CHECKING
+  sql = "SHOW COLUMNS FROM detected_standard_permissions"
+  db_cursor.execute(sql)
+  results = db_cursor.fetchall()
+  detectedPermissions = list()
+  for i in results:
+    if(i[0] != "ID"):
+      detectedPermissions.append(i[0])
+    # if
+  # for
+
+  missingPermissions = list()
+  for index in buff:
+    if index not in detectedPermissions:
+      missingPermissions.append(index.upper())
+      #for p in detectedPermissions:
+        #if(index.upper() < p):
+          #target_index = (detectedPermissions.index(p) - 1)
+          #afterColumn = detectedPermissions[target_index]
+          #sql = "ALTER TABLE detected_standard_permissions ADD " + index.upper() + " VARCHAR(1) NULL AFTER " + afterColumn
+          #print("\n" + sql + "\n")
+          #db_cursor.execute(sql)
+      # for
+    # if
+  # for
+
+  if missingPermissions:
+    print("Missing Permissions: ")
+    for i in missingPermissions:
+      print(i)
+    # for
+    exit()
+  # if
+
+  sql = "select ID, " + normalPermissionsColumns
+  sql = sql + " from detected_standard_permissions"
+  sql = sql + " where ID in " + sample_set
+  sql = sql + " order by ID"
+
+  sql_query = pd.read_sql_query(sql, db_connection)
+  df_alpha = pd.DataFrame(sql_query)
+  df_beta = pd.DataFrame()
+
+  df_beta['ID'] = df_alpha['ID']
+  df_alpha = df_alpha.drop(columns=['ID'])
+
+  for column in df_alpha:
+    for cell in df_alpha[column]:
+      if cell is not None:
+        print(column)
+        df_beta[column] = df_alpha[column]
+        break
+      # if
+    # for
+  # for
+
+  df_beta.to_excel(EXCEL_FILE)
+# function
+
+def generateMitreMatrix(sample_set):
+    EXCEL_FILE = 'OUTPUT\\Mitre-Matrix.xlsx'
+    
+    sql = "select * from mitre_matrix "
+    sql = sql + " where trojan_id in " + sample_set
+    sql = sql + " order by trojan_id"
+
+    df_raw = pd.read_sql_query(sql, db_connection)
+
+    cols = df_raw.columns.tolist()
+    cols.sort()
+    cols.remove('trojan_id')
+
+    df_beta = pd.DataFrame()
+    df_beta['trojan_id'] = df_raw['trojan_id']
+    df_alpha = df_raw.drop(columns=['trojan_id'])
+
+    for column in cols:
+        for cell in df_alpha[column]:
+            if cell is not None:
+                df_beta[column] = df_alpha[column]
+            break
+            # if
+        # for
+    # for
+
+    df_beta.to_excel(EXCEL_FILE)
+# function
+
+def addHashes():
+    hashes = list()
+
+    f = open('INPUT\\newHashes.txt')
+    for i in f:
+        hashes.append(i.strip())
+    # for
+
+    if checkHashes(hashes):
+        print("Existing Hashes: ")
+        for i in hashes:
+            print(i)
+        # for
+        exit()
+    # if
+
+    sql = "select max(id) from malware_samples"
+    db_cursor.execute(sql)
+    x = db_cursor.fetchall()
+    currentID = x[0][0]
+    values = list()
+
+    sql = "insert into malware_samples (id, md5) values (%s, %s)"
+    for i in hashes:
+        currentID = currentID + 1
+        values.append((currentID, i))
+    # for
+
+    db_cursor.executemany(sql, values)
+    db_connection.commit()
+
+    if (db_cursor.rowcount) == 0:
+        print("No records inserted.")
+    elif(db_cursor.rowcount == 1):
+        print(db_cursor.rowcount, "record inserted.")
+    else:
+        print(db_cursor.rowcount, "records inserted.")
+    # match
+# main
+
+
+def checkHashes(hashes):
+    sql = "SELECT md5 FROM malware_samples"
+    db_cursor.execute(sql)
+    results = db_cursor.fetchall()
+
+    buffer = list()
+    for i in hashes:
+        if i in results:
+            buffer.add(i)
+        # if
+    # for
+
+    if buffer:
+        return buffer
+    else:
+        return None
+    # if
+# end
+
+def generateMalwareSampleData(sample_set):
+    EXCEL_FILE = "OUTPUT\\Output-Excel.xlsx"
+    sql = "SELECT * FROM malware_samples WHERE family = 'Vultur'"
+    #sql = "SELECT * FROM mobfs_analysis WHERE id in (66, 67, 68, 69)"
+    df = pd.read_sql_query(sql, db_cursor)
+    df.to_excel(EXCEL_FILE)
 # function
