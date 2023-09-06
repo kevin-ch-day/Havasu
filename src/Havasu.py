@@ -5,6 +5,14 @@
 import mysql.connector
 import pandas as pd
 
+def __init__(self):
+   self.startDBConn()
+# construction
+
+def __del__(self):
+    self.endDBConn()
+# destructor
+
 def startDBConn():
     """ Connect to MySQL database """
     try:

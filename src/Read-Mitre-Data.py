@@ -20,7 +20,8 @@ for i in wb.sheetnames:
     df = pd.read_excel(EXCEL_FILE_NAME, sheet_name = i)
 
     sql = "INSERT INTO mitre_detection"
-    sql = sql + " (Trojan_ID, ATTACK_ID, Tactic, Description, Malicious_Indicators, Suspicious_Indicators, Informative_Indicators)"
+    sql = sql + " (Trojan_ID, ATTACK_ID, Tactic, Description, Malicious_Indicators, "
+    sql = sql + "Suspicious_Indicators, Informative_Indicators)"
     sql = sql + " VALUES (%s, %s, %s, %s, %s, %s, %s)"
 
     for index, row in df.iterrows():
