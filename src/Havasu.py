@@ -1,6 +1,5 @@
 # Havasu.py
 # Author: kevin.ch.day@gmail.com
-# Android Permissions Source: https://developer.android.com/reference/android/Manifest.permission
 
 import mysql.connector
 import pandas as pd
@@ -19,18 +18,22 @@ def startDBConn():
         global db_connection
         global db_cursor
 
+        SERVER = "localhost"
+        USER_NAME = "root"
+        DATABASE_NAME = "cyberops_capstone_android"
+        PORT_NUMBER = 3306
+
         db_connection = mysql.connector.connect(
-            host="localhost",
-            user="root",
+            host=SERVER,
+            user=USER_NAME,
             #password="",
-            database = "cyberops_capstone_android",
-            port = 3306)
+            database = DATABASE_NAME,
+            port = PORT_NUMBER)
 
         if not db_connection.is_connected():
             print("Cannot connected to data.\n")
             exit()
         # if
-
         db_cursor = db_connection.cursor()
 
     except Exception as e:
@@ -321,7 +324,8 @@ def outputNormalPermissions(sample_set):
         #if(index.upper() < p):
           #target_index = (detectedPermissions.index(p) - 1)
           #afterColumn = detectedPermissions[target_index]
-          #sql = "ALTER TABLE detected_standard_permissions ADD " + index.upper() + " VARCHAR(1) NULL AFTER " + afterColumn
+          #sql = "ALTER TABLE detected_standard_permissions ADD "
+          #sql = sql + index.upper() + " VARCHAR(1) NULL AFTER " + afterColumn
           #print("\n" + sql + "\n")
           #db_cursor.execute(sql)
       # for
@@ -427,7 +431,7 @@ def addHashes():
         print(db_cursor.rowcount, "record inserted.")
     else:
         print(db_cursor.rowcount, "records inserted.")
-    # match
+    # if
 # main
 
 
