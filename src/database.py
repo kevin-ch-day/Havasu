@@ -5,15 +5,25 @@ def startConnection(self):
     """ Connect to MySQL database """
     try:
         SERVER = "localhost"
+
+        # Username selection
+        #USER_NAME = "WebAdmin"
         USER_NAME = "root"
+
+        # Database selection
         #DATABASE_NAME = "capstone_prod"
         DATABASE_NAME = "capstone_dev"
+
+        # Password selection
+        #PASSWORD = "Passwor01"
+        PASSWORD = ""
+
         PORT_NUMBER = 3306
 
         connection = mysql.connector.connect(
             host = SERVER,
             user = USER_NAME,
-            #password="",
+            password = PASSWORD,
             database = DATABASE_NAME,
             port = PORT_NUMBER)
 
