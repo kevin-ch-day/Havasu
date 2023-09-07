@@ -11,9 +11,9 @@ import zipfile
 # Havasu class definition
 class Havasu:
 
-    __version__ = "1.0.0"
-    connection = None
-    cursor = None
+    __version__ = "1.0.0" # version number
+    connection = None # database connection
+    cursor = None # database cursor
 
     def __init__(self):
         # start database connection
@@ -774,6 +774,7 @@ class Havasu:
         # try
     # function
 
+    # Log detected Android permissions
     def logPermissions(apk):
         APK_NAME = apk[:-4]
         PERMISSION_LOG_NAME = "OUTPUT/" + APK_NAME + "_DetectedPermissions.txt"	
@@ -831,6 +832,7 @@ class Havasu:
         # try
     # function
 
+    # Analyze Android manifest
     def analyzeAndroidManifest(apk):
 
         APK_NAME = apk[:-4]
@@ -887,6 +889,7 @@ class Havasu:
         log.write("\n")
     # function
 
+    # Load Mitre data
     def loadMitreData(self):
         print("loadMitreData()") # DEBUGGING
         
@@ -907,6 +910,7 @@ class Havasu:
         return sorted(columns)
     # function
 
+    # Mitre data dictionary
     def getMitreDict(self):
         print("getMitreDict()") # DEBUGGING
 
@@ -941,6 +945,7 @@ class Havasu:
         return dict_mitre
     # function
 
+    # Get mitre matrix columns
     def getMitreMatrixColumns(self):
         print("getMitreMatrixColumns()") # DEBUGGING
 
@@ -953,6 +958,7 @@ class Havasu:
         return cols.tolist()
     # function
 
+    # Get sample ids
     def getSampleIds(self):
         print("getSampleIds()") # DEBUGGING
 
@@ -970,6 +976,7 @@ class Havasu:
         return temp
     # function
 
+    # Add ids mitra matrix
     def addIdsMitreMatrix(self):
         print("addIdsMitreMatrix()") # DEBUGGING
 
@@ -991,6 +998,7 @@ class Havasu:
         print() # newline
     # function
 
+    # Populate mitre matrix table
     def populateMitreMatrixTable(self):
         Havasu.addIdsMitreMatrix()
 
@@ -1022,6 +1030,7 @@ class Havasu:
         # for
     # function
 
+    # Generate LatTeX Charts
     def generateLaTexCharts(self, argv):
 
         sql = "SELECT ID, "
@@ -1034,7 +1043,7 @@ class Havasu:
 
         self.cursor.execute(sql)
         results = self.cursor.fetchall()
-        Havasu.printResults(results, "\nDataset Labels\n")
+        Havasu.displayLaTeXCharts(results, "\nDataset Labels\n")
 
         sql = "SELECT y.id, y.security_score score, y.grade, "
         sql = sql + "y.trackers_detections tracker, y.high_risks, y.medium_risks "
@@ -1043,7 +1052,7 @@ class Havasu:
 
         self.cursor.execute(sql)
         results = self.cursor.fetchall()
-        Havasu.printResults(results, "\nMobSF Security Score\n")
+        Havasu.displayLaTeXCharts(results, "\nMobSF Security Score\n")
 
         sql = "select x.id, "
         sql = sql + "x.size, "
@@ -1060,10 +1069,11 @@ class Havasu:
 
         self.cursor.execute(sql)
         results = self.cursor.fetchall()
-        Havasu.printResults(results, "\nStatic Analysis\n")
+        Havasu.displayLaTeXCharts(results, "\nStatic Analysis\n")
     # function
 
-    def printResults(results, chartTitle):
+    # Display LaTeX Charts
+    def displayLaTeXCharts(results, chartTitle):
         print(chartTitle) # newline
         for row in results:
             buff = ""
@@ -1078,7 +1088,6 @@ class Havasu:
 
                 cnt = cnt + 1 # increment
             # for
-
             print(buff)
         # for
     # function
