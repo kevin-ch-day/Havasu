@@ -11,7 +11,7 @@ import zipfile
 # Havasu class definition
 class Havasu:
 
-    __version__ = "1.0.0" # version number
+    __version__ = "1.0.1" # version number
     connection = None # database connection
     cursor = None # database cursor
 
