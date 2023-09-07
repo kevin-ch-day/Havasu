@@ -23,9 +23,9 @@ def startConnection(self):
         cursor = connection.cursor()
         return cursor, connection
 
-    except Exception as e:
+    except Exception as exp:
         print("[!!]- Error start database connection.\n")
-        print(str(e))
+        print(str(exp))
     # try
 # function
 
@@ -33,8 +33,8 @@ def endConnection(self):
     """ disconnect to MySQL database """
     try:
         self.connection.close()
-    except Exception as e:
+    except Exception as exp:
         print("[!!] - Error ending database connection.\n")
-        print(str(e))
+        print(str(exp))
     # try
 # function

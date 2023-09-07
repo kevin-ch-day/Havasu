@@ -2,10 +2,9 @@ import database
 
 class Havasu:
 
-    # class variable
     __version__ = "1.0.0"
-    databaseConnection = None
-    databseCursor = None
+    connection = None
+    cursor = None
 
     def __init__(self):
         # start database connection
@@ -25,7 +24,7 @@ class Havasu:
 
     def checkHash(self, hash):
         hashFound = False
-
+        
         sql = "select * from malware_samples where md5 = '" + hash + "'"
         self.cursor.execute(sql)
         results = self.cursor.fetchall()
