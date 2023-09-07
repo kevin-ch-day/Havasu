@@ -78,8 +78,15 @@ def checkHash(hash):
     h.checkHash(hash)
 # function
 
-def decompileAPK():
+def decompileAPK(apk):
     print("** Decompiling APK file")
+
+    APK_FILE = None
+
+    #Havasu.decompileAPK(APK_FILE)
+    #Havasu.logPermissions(APK_FILE)
+    #Havasu.analysisAndroidManifest(APK_FILE)
+    #Havasu.manifestToTxt(APK_FILE)
 # function
 
 # main()
