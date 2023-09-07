@@ -76,6 +76,10 @@ def checkHash(hash):
     h.checkHash(hash)
 # function
 
+def decompileAPK():
+    print("** Decompiling APK file")
+# function
+
 # main()
 def main(argv):
     #print("# command line args: " + str(len(argv))) # DEBUGGING
@@ -100,7 +104,7 @@ def main(argv):
 
     # Decompile APK command
     elif argv[0] == '-d' or argv[0] == '--decompile':
-        print("Decompling APK file")
+        decompileAPK()
 
     # Data input command
     elif argv[0] == '-i' or argv[0] == '--input':

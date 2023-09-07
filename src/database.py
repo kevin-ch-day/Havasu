@@ -55,5 +55,22 @@ def endConnection(self):
 
 # Check database configuration
 def checkDatabaseConfig(self):
+
+    # check for android_permissions table
+    
+    # check for banking_samples
+    
+    # check for detected_standard_permissions
+    
+    # check for detected_unknown_permissions
+    
+    # check for malware_samples
+    
+    # check for mitre_detection
+    
+    # check for mitre_matrix
+    
+    # check for mobfs_analysis
+
     pass
 # function
