@@ -1,17 +1,42 @@
+# run.py
+
 from havasu import *
 import sys
 
+# Record sample permissions
 def recordSamplePermissions():
-    TROJAN_ID = None
+    userSampleIdInput = input("Enter sample id: ")
 
-    # check if permissions records already exist
+    if not isinstance(userSampleIdInput, int):
+        print("[!!] Error: sample id input not an interger")
+        exit(-1)
+    # if
+    
+    TROJAN_ID = int(userSampleIdInput) # convert to integer
+    
+    # if permissions records already exist
+    if not Havasu.checkPermissionRecords(TROJAN_ID):
 
-    permissions = Havasu.readDetectedPermissions()
-    permissions.sort()
-    Havasu.createPermissionRecord(TROJAN_ID)
-    Havasu.classifyPermissions(TROJAN_ID, permissions)
+        # no records exist
+        permissions = Havasu.readDetectedPermissions()
+        permissions.sort()
+        Havasu.createPermissionRecord(TROJAN_ID)
+        Havasu.classifyPermissions(TROJAN_ID, permissions)
+
+    # if no permissions records exist
+    else:
+
+        # prompt user
+        print("Premission records exist for " + str(TROJAN_ID))
+        userDeletionInput = input("Do you want to delete permission records? (yes/no): ")
+        if userDeletionInput.upper() == "Y" or userDeletionInput.upper() == "YES":
+            # delete permissions record for given trojan id
+            pass
+        # if
+    # if
 # function
 
+# Generate permission analysis matrix
 def generatePermissionAnalysis():
     SAMPLE_SET = None
     TROJAN_FAMILY = None
@@ -21,10 +46,12 @@ def generatePermissionAnalysis():
     Havasu.outputNormalPermissions(SAMPLE_SET)
 # function
 
+# Generate mitre matrix
 def generateMitreMatrix(sample_set):
     pass
 # function
 
+# main()
 def main(argv):
     #print("# command line args: " + str(len(argv))) # DEBUGGING
 
@@ -36,12 +63,14 @@ def main(argv):
     elif argv[0] == '-h' or argv[0] == "--help":
         print("usage: havasu")
         print("-d, --decompile Decompile APK")
-        print("-h, --help Show help commands and usage")
+        print("-h, --help Show help commands and usage\n")
         print("-i, --input Read data from INPUT directory")
+        print("-------------------------------------------")
         print("\t-p, --permissions Read permission data")
-        print("\t-m, --mitre Read mitre .xlsx data")
+        print("\t-m, --mitre Read mitre .xlsx data\n")
         print("-o, --output Write data to OUTPUT directory")
-        print("\t-p, --permissions Permission matrix")
+        print("-------------------------------------------")
+        print("\t-p, --permissions Permission matrix\n")
         print("--hash Check hash against database")
 
     # Decompile command
@@ -53,12 +82,12 @@ def main(argv):
 
         # permission data
         if argv[1] == '-p' or argv[1] == '--permisions':
-            print("Reading Permission Data")
-            #recordSamplePermissions()
+            print("** Reading Permission Data")
+            recordSamplePermissions()
 
         # mitre data
         if argv[1] == '-m' or argv[1] == '--mitre':
-            print("Read Mitre Data")
+            print("** Reading Mitre Data")
         # if
 
     # Data output command
@@ -66,12 +95,12 @@ def main(argv):
 
         # permission data
         if argv[1] == '-p' or argv[1] == '--permisions':
-            print("Generating Permission Matrix")
+            print("** Generating Permission Matrix")
             #generatePermissionAnalysis()
 
         # mitre data
         if argv[1] == '-m' or argv[1] == '--mitre':
-            print("Generating Mitre Matrix")
+            print("** Generating Mitre Matrix")
         # if
 
     # Version number

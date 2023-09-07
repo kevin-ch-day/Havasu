@@ -1,3 +1,4 @@
+# database.py
 import mysql.connector
 
 # Start database connection
