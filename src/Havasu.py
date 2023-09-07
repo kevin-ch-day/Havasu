@@ -611,7 +611,6 @@ class Havasu:
     #     jar = apk[:pos] + "-dex2jar.jar"
     #     zippedFile = zipfile.ZipFile(jar, 'r')
     #     jarClasses = list()
-
     #     try:
     #         lst = zf.infolist()
     #         for zi in lst:
@@ -620,7 +619,6 @@ class Havasu:
     #                 jarClasses.append(fn)
     #             # if
     #         # for
-        
     #     except IOError:
     #         print ('unable to read file {file}'.format(file = jar))
     #         exit(1)
@@ -630,7 +628,6 @@ class Havasu:
     #     finally:
     #         zippedFile.close()
     #     # try
-
     #     return jarClasses
     # # function
 
