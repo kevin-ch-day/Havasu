@@ -107,7 +107,8 @@ def main(argv):
         print("\t-m, --mitre Read mitre .xlsx data\n")
         print("-o, --output Write data to OUTPUT directory")
         print("-------------------------------------------")
-        print("\t-p, --permissions Permission matrix\n")
+        print("\t-p, --permissions Permission matrix")
+        print("\t-m, --mitre Mitre matrix\n")
         print("--hash Check hash against database")
 
     # Decompile APK command

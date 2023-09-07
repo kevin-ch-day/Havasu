@@ -341,6 +341,7 @@ class Havasu:
         df_beta.to_excel(EXCEL_FILE)
     # function
 
+    # Unknown Permissions
     def outputUnknownPermissions(self, sample_set):
         FILE_PATH = 'OUTPUT\\Unknown-Permissions.xlsx'
 
@@ -367,7 +368,7 @@ class Havasu:
         df_beta.to_excel(FILE_PATH)
     # function
 
-    ## NORMAL PERMISSIONS
+    # Normal Permissions
     def outputNormalPermissions(self, sample_set):
         EXCEL_FILE = 'OUTPUT\\Normal-Permissions.xlsx'
 
@@ -444,6 +445,7 @@ class Havasu:
         df_beta.to_excel(EXCEL_FILE)
     # function
 
+    # Generate mitre matrix
     def generateMitreMatrix(self, sample_set):
         EXCEL_FILE = 'OUTPUT\\Mitre-Matrix.xlsx'
         
@@ -482,6 +484,7 @@ class Havasu:
         os.system("d2j-dex2jar " + apk_arg)
     # function 
 
+    # Scan AndroidManifest.xml
     def scanManifest(manifest_path):
         manifestCopy = None
         
@@ -498,6 +501,7 @@ class Havasu:
         return manifestCopy  
     # function
 
+    # Read AndroidManifest.xml permissions
     def getManifestPermissions(androidManifest):
         standardPermissions = list()
         unknownPermissions = list()
@@ -531,6 +535,7 @@ class Havasu:
         return standardPermissions, unknownPermissions
     # function
 
+    # Get permissions
     def getPermissions(manifest):
         detectedPermissions = list()
         unknownPermissionFormat = False
@@ -587,6 +592,7 @@ class Havasu:
         return detectedPermissions
     # function
 
+    # Get AndroidManifest.xml services
     def getManifestServices(manifest):
         services = list() # empty list
         for line in manifest:
@@ -602,6 +608,7 @@ class Havasu:
         return services
     # function
 
+    # JAR file
     # def analyzeJAR(apk):
     #     pos = apk.find(".")
     #     jar = apk[:pos] + "-dex2jar.jar"
@@ -627,6 +634,7 @@ class Havasu:
     #     return jarClasses
     # # function
 
+    # Get APK META data
     def getAPKMetaData(manifest):
         for index in manifest:
             if "<manifest " in index:
@@ -691,6 +699,7 @@ class Havasu:
         # for
     # function
 
+    # Get AndroidManifest.xml features used
     def getManifestFeaturesUsed(manifest):
         usesFeatures = dict()
         unknownFeatures = list()
