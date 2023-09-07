@@ -1,10 +1,18 @@
 # run.py
+# Driver for Havasu
 
 from havasu import *
 import sys
 
+# Application version number
+def version():
+    h = Havasu()
+    print("Havasu version " + h.versionNumber())
+# functio
+
 # Record sample permissions
 def recordSamplePermissions():
+
     # prompt to enter sample id
     userSampleIdInput = input("Enter sample id: ")
 
@@ -12,17 +20,17 @@ def recordSamplePermissions():
         print("[!!] Error: sample id input not an interger")
         exit(-1)
     # if
-    
+
     TROJAN_ID = int(userSampleIdInput) # convert to integer
     
     # If no permissions records exist
     if not Havasu.checkPermissionRecords(TROJAN_ID):
 
-        print("Reading permission input")
+        print("** Reading Permission Data")
         permissions = Havasu.readDetectedPermissions()
         permissions.sort()
 
-        print("Creating permission record")
+        print("** Creating permission records")
         Havasu.createPermissionRecord(TROJAN_ID)
         Havasu.classifyPermissions(TROJAN_ID, permissions)
 
@@ -44,21 +52,35 @@ def generatePermissionAnalysis():
     SAMPLE_SET = None
     TROJAN_FAMILY = None
 
+    print("** Generating Permission Matrix")
     #Havasu.outputStandardPermissions(SAMPLE_SET)
     #Havasu.outputUnknownPermissions(SAMPLE_SET)
     #Havasu.outputNormalPermissions(SAMPLE_SET)
 # function
 
+# Reading mitre data
+def readMitreData():
+    print("** Reading Mitre Data")
+# function
+
 # Generate mitre matrix
 def generateMitreMatrix():
-    pass
+    print("** Generating Mitre Matrix")
+# function
+
+# Checking hash
+def checkHash(hash):
+    print("** Cheching hash")
+    print("Hash: " + hash + "\n")
+    h = Havasu()
+    h.checkHash(hash)
 # function
 
 # main()
 def main(argv):
     #print("# command line args: " + str(len(argv))) # DEBUGGING
 
-    # Check number of terminal arguments
+    # Check if no argument were supplied
     if len(argv) == 0:
         exit()
 
@@ -76,7 +98,7 @@ def main(argv):
         print("\t-p, --permissions Permission matrix\n")
         print("--hash Check hash against database")
 
-    # Decompile command
+    # Decompile APK command
     elif argv[0] == '-d' or argv[0] == '--decompile':
         print("Decompling APK file")
 
@@ -85,12 +107,11 @@ def main(argv):
 
         # permission data
         if argv[1] == '-p' or argv[1] == '--permisions':
-            print("** Reading Permission Data")
             recordSamplePermissions()
 
         # mitre data
         if argv[1] == '-m' or argv[1] == '--mitre':
-            print("** Reading Mitre Data")
+            readMitreData()
         # if
 
     # Data output command
@@ -98,35 +119,25 @@ def main(argv):
 
         # permission data
         if argv[1] == '-p' or argv[1] == '--permisions':
-            print("** Generating Permission Matrix")
             generatePermissionAnalysis()
 
         # mitre data
         if argv[1] == '-m' or argv[1] == '--mitre':
-            print("** Generating Mitre Matrix")
             generateMitreMatrix()
         # if
 
-    # Version number
+    # Display version number
     elif argv[0] == '-v' or argv[0] == '--version':
-        h = Havasu()
-        print("Havasu version " + h.versionNumber())
+        version()
 
     # Check hash against database
     elif argv[0] == '--hash':
-        h = Havasu()
-        h.checkHash(argv[1])
+        checkHash(argv[1])
     
     # Unknown command
     else:
         print("Error: unknown command\n")
     # if
-
-    ANUBIS = "(55, 80, 81, 83, 103, 104, 105)"
-    FLUBOT = "(8, 9, 10, 11, 21, 22, 29, 30, 31, 32, 33, 34, 35, 36, 37)"
-    SOVA = "(44, 45, 114, 115)"
-    BRATA = "(6, 7, 18, 19, 20, 117, 118)"
-    VULTAUR = "(1, )"
 # main
 
 if __name__ == "__main__":

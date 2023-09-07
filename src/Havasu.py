@@ -3,6 +3,7 @@
 import database
 import pandas as pd
 
+# Havasu class definition
 class Havasu:
 
     __version__ = "1.0.0"
@@ -12,8 +13,8 @@ class Havasu:
     def __init__(self):
         # start database connection
         self.cursor, self.connection = database.startConnection(self)
-        #print(self.connection)
-        #print(self.cursor)
+        #print(self.connection) # DEBUGGING
+        #print(self.cursor) # DEBUGGING
     # construction
 
     def __del__(self):
@@ -43,7 +44,7 @@ class Havasu:
         results = self.cursor.fetchall()
         if results:
             hashFound = True
-            print("MD5 match found")
+            print("MD5 hash match found")
             self.displayMalwareRecord(results[0])
             return
         # if
@@ -53,7 +54,7 @@ class Havasu:
         results = self.cursor.fetchall()
         if results:
             hashFound = True
-            print("SHA1 match found")
+            print("SHA1 hash match found")
             self.displayMalwareRecord(results)
             return
         # if
@@ -63,13 +64,13 @@ class Havasu:
         results = self.cursor.fetchall()
         if results:
             hashFound = True
-            print("SHA256 match found")
+            print("SHA256 hash match found")
             self.displayMalwareRecord(results)
             return
         # if
 
         if not hashFound:
-            print("No record found.")
+            print("No hash record found.")
         # if
     # checkHash()
 
