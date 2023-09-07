@@ -407,7 +407,7 @@ def addHashes():
         hashes.append(i.strip())
     # for
 
-    if checkHashes(hashes):
+    if checkHash(hashes):
         print("Existing Hashes: ")
         for i in hashes:
             print(i)

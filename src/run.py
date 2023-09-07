@@ -28,9 +28,14 @@ def main(argv):
     # Show help and usgae command
     elif argv[0] == '-h' or argv[0] == "--help":
         print("usage: havasu")
-        print("-d, --decompile\tDecompile APK")
-        print("-h, --help\tShow help commands and usage")
-        print("--hash\t\tCheck hash against database")
+        print("-d, --decompile Decompile APK")
+        print("-h, --help Show help commands and usage")
+        print("-i, --input Read data from INPUT directory")
+        print("\t-p, --permissions Permission data")
+        print("\t-m, --mitre Mitre .xlsx data")
+        print("-o, --output Write data to OUTPUT directory")
+        print("\t-p, --permissions Permission matrix")
+        print("--hash Check hash against database")
 
     # Decompile command
     elif argv[0] == '-d' or argv[0] == '--decompile':
@@ -38,7 +43,14 @@ def main(argv):
 
     # Data input command
     elif argv[0] == '-i' or argv[0] == '--input':
-        print(argv[1])
+
+        # permission data
+        if argv[1] == '-p' or argv[1] == '--permisions':
+            print(argv[1])
+
+        if argv[1] == '-m' or argv[1] == '--mitre':
+            print(argv[1])
+        # if
 
     # Version number
     elif argv[0] == '-v' or argv[0] == '--version':
