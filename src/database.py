@@ -6,7 +6,8 @@ def startConnection(self):
     try:
         SERVER = "localhost"
         USER_NAME = "root"
-        DATABASE_NAME = "cyberops_capstone_android"
+        #DATABASE_NAME = "capstone_prod"
+        DATABASE_NAME = "capstone_dev"
         PORT_NUMBER = 3306
 
         connection = mysql.connector.connect(
