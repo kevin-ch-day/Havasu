@@ -5,6 +5,7 @@ import sys
 
 # Record sample permissions
 def recordSamplePermissions():
+    # prompt to enter sample id
     userSampleIdInput = input("Enter sample id: ")
 
     if not isinstance(userSampleIdInput, int):
@@ -14,20 +15,22 @@ def recordSamplePermissions():
     
     TROJAN_ID = int(userSampleIdInput) # convert to integer
     
-    # if permissions records already exist
+    # If no permissions records exist
     if not Havasu.checkPermissionRecords(TROJAN_ID):
 
-        # no records exist
+        print("Reading permission input")
         permissions = Havasu.readDetectedPermissions()
         permissions.sort()
+
+        print("Creating permission record")
         Havasu.createPermissionRecord(TROJAN_ID)
         Havasu.classifyPermissions(TROJAN_ID, permissions)
 
-    # if no permissions records exist
+    # If permissions records exist
     else:
-
-        # prompt user
         print("Premission records exist for " + str(TROJAN_ID))
+
+        # promot user if the want to delete permission record
         userDeletionInput = input("Do you want to delete permission records? (yes/no): ")
         if userDeletionInput.upper() == "Y" or userDeletionInput.upper() == "YES":
             # delete permissions record for given trojan id
@@ -41,13 +44,13 @@ def generatePermissionAnalysis():
     SAMPLE_SET = None
     TROJAN_FAMILY = None
 
-    Havasu.outputStandardPermissions(SAMPLE_SET)
-    Havasu.outputUnknownPermissions(SAMPLE_SET)
-    Havasu.outputNormalPermissions(SAMPLE_SET)
+    #Havasu.outputStandardPermissions(SAMPLE_SET)
+    #Havasu.outputUnknownPermissions(SAMPLE_SET)
+    #Havasu.outputNormalPermissions(SAMPLE_SET)
 # function
 
 # Generate mitre matrix
-def generateMitreMatrix(sample_set):
+def generateMitreMatrix():
     pass
 # function
 
@@ -75,7 +78,7 @@ def main(argv):
 
     # Decompile command
     elif argv[0] == '-d' or argv[0] == '--decompile':
-        print(argv[1])
+        print("Decompling APK file")
 
     # Data input command
     elif argv[0] == '-i' or argv[0] == '--input':
@@ -96,11 +99,12 @@ def main(argv):
         # permission data
         if argv[1] == '-p' or argv[1] == '--permisions':
             print("** Generating Permission Matrix")
-            #generatePermissionAnalysis()
+            generatePermissionAnalysis()
 
         # mitre data
         if argv[1] == '-m' or argv[1] == '--mitre':
             print("** Generating Mitre Matrix")
+            generateMitreMatrix()
         # if
 
     # Version number
@@ -123,13 +127,8 @@ def main(argv):
     SOVA = "(44, 45, 114, 115)"
     BRATA = "(6, 7, 18, 19, 20, 117, 118)"
     VULTAUR = "(1, )"
-
-    trojan_sample_id = 80
-    sample_set = ANUBIS
-
-    #generatePermissionAnalysis(sample_set)
 # main
 
 if __name__ == "__main__":
-   main(sys.argv[1:])
+   main(sys.argv[1:]) # run app
 # if
