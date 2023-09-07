@@ -1,5 +1,6 @@
 import mysql.connector
 
+# Start database connection
 def startConnection(self):
     """ Connect to MySQL database """
     try:
@@ -29,6 +30,7 @@ def startConnection(self):
     # try
 # function
 
+# End database connection
 def endConnection(self):
     """ disconnect to MySQL database """
     try:
@@ -37,4 +39,9 @@ def endConnection(self):
         print("[!!] - Error ending database connection.\n")
         print(str(exp))
     # try
+# function
+
+# Check database configuration
+def checkDatabaseConfig(self):
+    pass
 # function

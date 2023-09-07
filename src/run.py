@@ -21,26 +21,29 @@ def generateMitreMatrix(sample_set):
 def main(argv):
     #print("# command line args: " + str(len(argv))) # DEBUGGING
 
-    # check number of terminal arguments
+    # Check number of terminal arguments
     if len(argv) == 0:
         exit()
 
-    # show help and usgae command
+    # Show help and usgae command
     elif argv[0] == '-h' or argv[0] == "--help":
         print("usage: havasu")
         print("-d, --decompile\tDecompile APK")
         print("-h, --help\tShow help commands and usage")
         print("--hash\t\tCheck hash against database")
-        print() # newline
 
     # Decompile command
     elif argv[0] == '-d' or argv[0] == '--decompile':
         print(argv[1])
 
+    # Data input command
+    elif argv[0] == '-i' or argv[0] == '--input':
+        print(argv[1])
+
     # Version number
     elif argv[0] == '-v' or argv[0] == '--version':
         h = Havasu()
-        print("Havasu version " + h.versionNumber() + "\n")
+        print("Havasu version " + h.versionNumber())
 
     # Check hash against database
     elif argv[0] == '--hash':
@@ -62,7 +65,6 @@ def main(argv):
     sample_set = ANUBIS
 
     #generatePermissionAnalysis(sample_set)
-    print() # newline
 # main
 
 if __name__ == "__main__":
