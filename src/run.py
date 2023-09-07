@@ -1,17 +1,24 @@
 from havasu import *
 import sys
 
-def recordSamplePermissions(trojan_id):
+def recordSamplePermissions():
+    TROJAN_ID = None
+
+    # check if permissions records already exist
+
     permissions = Havasu.readDetectedPermissions()
     permissions.sort()
-    Havasu.createPermissionRecord(trojan_id)
-    Havasu.classifyPermissions(trojan_id, permissions)
+    Havasu.createPermissionRecord(TROJAN_ID)
+    Havasu.classifyPermissions(TROJAN_ID, permissions)
 # function
 
-def generatePermissionAnalysis(sample_set):
-    Havasu.outputStandardPermissions(sample_set)
-    Havasu.outputUnknownPermissions(sample_set)
-    Havasu.outputNormalPermissions(sample_set)
+def generatePermissionAnalysis():
+    SAMPLE_SET = None
+    TROJAN_FAMILY = None
+
+    Havasu.outputStandardPermissions(SAMPLE_SET)
+    Havasu.outputUnknownPermissions(SAMPLE_SET)
+    Havasu.outputNormalPermissions(SAMPLE_SET)
 # function
 
 def generateMitreMatrix(sample_set):
@@ -25,14 +32,14 @@ def main(argv):
     if len(argv) == 0:
         exit()
 
-    # Show help and usgae command
+    # Show help and useage command
     elif argv[0] == '-h' or argv[0] == "--help":
         print("usage: havasu")
         print("-d, --decompile Decompile APK")
         print("-h, --help Show help commands and usage")
         print("-i, --input Read data from INPUT directory")
-        print("\t-p, --permissions Permission data")
-        print("\t-m, --mitre Mitre .xlsx data")
+        print("\t-p, --permissions Read permission data")
+        print("\t-m, --mitre Read mitre .xlsx data")
         print("-o, --output Write data to OUTPUT directory")
         print("\t-p, --permissions Permission matrix")
         print("--hash Check hash against database")
@@ -46,10 +53,25 @@ def main(argv):
 
         # permission data
         if argv[1] == '-p' or argv[1] == '--permisions':
-            print(argv[1])
+            print("Reading Permission Data")
+            #recordSamplePermissions()
 
+        # mitre data
         if argv[1] == '-m' or argv[1] == '--mitre':
-            print(argv[1])
+            print("Read Mitre Data")
+        # if
+
+    # Data output command
+    elif argv[0] == '-o' or argv[0] == '--output':
+
+        # permission data
+        if argv[1] == '-p' or argv[1] == '--permisions':
+            print("Generating Permission Matrix")
+            #generatePermissionAnalysis()
+
+        # mitre data
+        if argv[1] == '-m' or argv[1] == '--mitre':
+            print("Generating Mitre Matrix")
         # if
 
     # Version number
