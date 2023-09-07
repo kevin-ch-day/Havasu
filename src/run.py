@@ -1,5 +1,5 @@
-import Havasu
-import sys, getopt
+from havasu import *
+import sys
 
 def recordSamplePermissions(trojan_id):
     permissions = Havasu.readDetectedPermissions()
@@ -19,26 +19,38 @@ def generateMitreMatrix(sample_set):
 # function
 
 def main(argv):
-    inputfile = ''
-    outputfile = ''
-    opts, args = getopt.getopt(argv,"hi:o:",["ifile=","ofile="])
+    #print("# command line args: " + str(len(argv))) # DEBUGGING
 
-    for opt, arg in opts:
-        
-        if opt == '-h': # Help
-           print ('test.py -i <inputfile> -o <outputfile>')
-           sys.exit()
+    # check number of terminal arguments
+    if len(argv) == 0:
+        exit()
 
-        elif opt in ("-i", "--ifile"): # Input
-            inputfile = arg
+    # show help and usgae command
+    elif argv[0] == '-h' or argv[0] == "--help":
+        print("usage: havasu")
+        print("-d, --decompile\tDecompile APK")
+        print("-h, --help\tShow help commands and usage")
+        print("--hash\t\tCheck hash against database")
+        print() # newline
 
-        elif opt in ("-o", "--ofile"): # Output
-            outputfile = arg
-        # if
-    # for
+    # Decompile command
+    elif argv[0] == '-d' or argv[0] == '--decompile':
+        print(argv[1])
+
+    # Version number
+    elif argv[0] == '-v' or argv[0] == '--version':
+        h = Havasu()
+        print("Havasu version " + h.versionNumber() + "\n")
+
+    # Check hash against database
+    elif argv[0] == '--hash':
+        h = Havasu()
+        h.checkHash(argv[1])
     
-    print ('Input file is ', inputfile)
-    print ('Output file is ', outputfile)
+    # Unknown command
+    else:
+        print("Error: unknown command\n")
+    # if
 
     ANUBIS = "(55, 80, 81, 83, 103, 104, 105)"
     FLUBOT = "(8, 9, 10, 11, 21, 22, 29, 30, 31, 32, 33, 34, 35, 36, 37)"
@@ -49,7 +61,8 @@ def main(argv):
     trojan_sample_id = 80
     sample_set = ANUBIS
 
-    generatePermissionAnalysis(sample_set)
+    #generatePermissionAnalysis(sample_set)
+    print() # newline
 # main
 
 if __name__ == "__main__":
