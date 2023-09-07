@@ -688,6 +688,7 @@ class Havasu:
                 platformBuildVersionName = sliced[sliced.find("\"")+1:endPos]
                 return compileSdkVersion, compileSdkVersionCodename, apkPackagename, platformBuildVersionCode, platformBuildVersionName
             # if
+        # for
     # function
 
     def getManifestFeaturesUsed(manifest):
@@ -830,7 +831,7 @@ class Havasu:
         # try
     # function
 
-    def analysisAndroidManifest(apk):
+    def analyzeAndroidManifest(apk):
 
         APK_NAME = apk[:-4]
         F_LOG_NAME = "OUTPUT/"+APK_NAME+"_AnalysisLog.txt"
@@ -884,5 +885,201 @@ class Havasu:
         # for
 
         log.write("\n")
+    # function
+
+    def loadMitreData(self):
+        print("loadMitreData()") # DEBUGGING
+        
+        columns = set() # empty set
+
+        sql = "select distinct description, attack_id"
+        sql = sql + " from mitre_detection"
+        sql = sql + " order by description, attack_id"
+
+        results = pd.read_sql_query(sql, self.connection)
+        records = pd.DataFrame(results)
+
+        for index, row in records.iterrows():
+            col = row[0] + " " + row[1]
+            columns.add(col)
+        # for
+
+        return sorted(columns)
+    # function
+
+    def getMitreDict(self):
+        print("getMitreDict()") # DEBUGGING
+
+        dict_mitre = dict()  
+        for i in Havasu.loadMitreData():
+            dict_mitre[i] = list()
+        # for
+
+        print("\nLoading Mitre Data") # newline
+        print("---------------") # newline
+        for k in dict_mitre:
+            print(k)
+        # for
+        print() # newline
+
+        sql = "select description, ATTACK_ID, trojan_id"
+        sql = sql + " from mitre_detection"
+        sql = sql + " order by trojan_id, description, ATTACK_ID"
+
+        results = pd.read_sql_query(sql, self.connection)
+        df_samples = pd.DataFrame(results)
+
+        for index, row in df_samples.iterrows():
+            key = row[0] + " " + row[1]
+            #print(key)
+            items = dict_mitre[key]
+            items.append(row[2])
+            items.sort()
+            dict_mitre[key] = items
+        # for
+
+        return dict_mitre
+    # function
+
+    def getMitreMatrixColumns(self):
+        print("getMitreMatrixColumns()") # DEBUGGING
+
+        sql = "SHOW COLUMNS FROM mitre_matrix"
+        results = pd.read_sql_query(sql, self.connection)
+        
+        cols = results.loc[:, 'Field']  
+        cols = cols.drop(cols.index[0])
+
+        return cols.tolist()
+    # function
+
+    def getSampleIds(self):
+        print("getSampleIds()") # DEBUGGING
+
+        sql = "select DISTINCT trojan_id from mitre_detection"
+        results = pd.read_sql_query(sql, self.connection)
+        records = pd.DataFrame(results)
+        
+        temp = list()
+        for i in records.loc[:, 'trojan_id']:
+            temp.append(i)
+        # for
+
+        temp.sort()
+
+        return temp
+    # function
+
+    def addIdsMitreMatrix(self):
+        print("addIdsMitreMatrix()") # DEBUGGING
+
+        samples = Havasu.getSampleIds()
+
+        for index in samples:
+            sql = "select * from mitre_matrix where trojan_id = " + str(index)
+            results = pd.read_sql_query(sql, self.connection)
+            
+            if results.empty:
+                sql = "insert into mitre_matrix (trojan_id) value (%s)"
+                self.cursor.execute(sql, (str(index),))
+                self.connection.commit()
+
+                print("Added sample id: " + str(index))
+            # if
+        # for
+
+        print() # newline
+    # function
+
+    def populateMitreMatrixTable(self):
+        Havasu.addIdsMitreMatrix()
+
+        columns = Havasu.getMitreMatrixColumns()
+        dict_mitreMatrix = Havasu.getMitreDict()
+        
+        # iterator to find any missing columns 
+        for index in dict_mitreMatrix:
+            
+            # check if column does not exist in the table
+            if index not in columns:
+                print(index + " Does not exist")
+                sql = "ALTER TABLE `mitre_matrix` ADD `"+ index +"` varchar(1) null"
+                self.cursor.execute(sql)
+                self.connection.commit()
+            # if
+        # for
+        print() # newline
+
+        for key in dict_mitreMatrix:
+            print(key)
+            values = dict_mitreMatrix[key]
+            
+            for i in values:
+                sql = "UPDATE mitre_matrix SET `" + key + "` = 'X' WHERE trojan_id = " + str(i)
+                self.cursor.execute(sql)
+                self.connection.commit()
+            # for
+        # for
+    # function
+
+    def generateLaTexCharts(self, argv):
+
+        sql = "SELECT ID, "
+        sql = sql + "Kaspersky_Label Kaspersky, "
+        sql = sql + "HybridAnalysis_Label HybridAnalysis, "
+        sql = sql + "VirusTotal_DetectionRatio, "
+        sql = sql + "HybridAnalysis_AV_Detection "
+        sql = sql + "FROM malware_samples "
+        sql = sql + "WHERE family = '" + argv[0] + "' order by id"
+
+        self.cursor.execute(sql)
+        results = self.cursor.fetchall()
+        Havasu.printResults(results, "\nDataset Labels\n")
+
+        sql = "SELECT y.id, y.security_score score, y.grade, "
+        sql = sql + "y.trackers_detections tracker, y.high_risks, y.medium_risks "
+        sql = sql + "FROM malware_samples x JOIN mobfs_analysis y ON y.id = x.id "
+        sql = sql + "where x.family = '" + argv[0] + "' order by x.id"
+
+        self.cursor.execute(sql)
+        results = self.cursor.fetchall()
+        Havasu.printResults(results, "\nMobSF Security Score\n")
+
+        sql = "select x.id, "
+        sql = sql + "x.size, "
+        sql = sql + "x.Target_SDK, x.Minimum_SDK,"
+        sql = sql + "y.activities, "
+        sql = sql + "y.services, "
+        sql = sql + "y.receivers, "
+        sql = sql + "y.providers "
+        sql = sql + "from malware_samples x "
+        sql = sql + "join mobfs_analysis y "
+        sql = sql + "on y.id = x.id "
+        sql = sql + "where x.family = '"+argv[0]+"' "
+        sql = sql + "order by x.id "
+
+        self.cursor.execute(sql)
+        results = self.cursor.fetchall()
+        Havasu.printResults(results, "\nStatic Analysis\n")
+    # function
+
+    def printResults(results, chartTitle):
+        print(chartTitle) # newline
+        for row in results:
+            buff = ""
+            cnt = 0
+
+            for element in row:
+                if cnt == (len(row) - 1):
+                    buff = buff + str(element) + " \\\\"
+                else:
+                    buff = buff + str(element) + " & "
+                # if
+
+                cnt = cnt + 1 # increment
+            # for
+
+            print(buff)
+        # for
     # function
 # class

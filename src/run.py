@@ -63,6 +63,7 @@ def readMitreData():
     print("** Reading Mitre Data")
     h = Havasu()
     h.readMitreData()
+    h.populateMitreMatrixTable()
 # function
 
 # Generate mitre matrix
@@ -81,12 +82,10 @@ def checkHash(hash):
 def decompileAPK(apk):
     print("** Decompiling APK file")
 
-    APK_FILE = None
-
-    #Havasu.decompileAPK(APK_FILE)
-    #Havasu.logPermissions(APK_FILE)
-    #Havasu.analysisAndroidManifest(APK_FILE)
-    #Havasu.manifestToTxt(APK_FILE)
+    #Havasu.decompileAPK(apk)
+    #Havasu.logPermissions(apk)
+    #Havasu.analyzeAndroidManifest(apk)
+    #Havasu.manifestToTxt(apk)
 # function
 
 # main()
