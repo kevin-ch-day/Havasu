@@ -99,8 +99,6 @@ class Havasu:
         print("Permission record created for " + trojan_id)
     # function
 
-
-
     # Display malware record
     def displayMalwareRecord(self, record):
         print("ID:\t\t" + str(record[0]))
@@ -155,7 +153,6 @@ class Havasu:
                 values.append(data)
 
                 self.cursor.execute(sql, data)
-
                 #print(cursor.rowcount, "record inserted.")
             # for
 
@@ -216,7 +213,6 @@ class Havasu:
         # if
 
         print("Unknown Permissions found: ", len(unknownPermissions))
-
         Havasu.recordAndroidPermissions(trojan, standardFormatPerms)
         print("\nStandard Permissions found: ", len(standardFormatPerms))
     # function
