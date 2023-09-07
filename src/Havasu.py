@@ -869,7 +869,7 @@ class Havasu:
         # for
         log.write("\n")
 
-        # USES-FEATURES
+        # Log detected uses-features
         uses_features = Havasu.getManifestFeaturesUsed(manifest)
         if uses_features:
             log.write("USES-FEATURES\n")
@@ -879,12 +879,14 @@ class Havasu:
             log.write("\n")
         # if
         
-        # SERVICES
+        # Log detected APK services
         services = Havasu.getManifestServices(manifest)
         log.write("Services\n")
+        
         for i in services:
             log.write(i + "\n")
         # for
+
         log.write("\n")
     # function
 # class
