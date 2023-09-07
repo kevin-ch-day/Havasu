@@ -2,6 +2,7 @@
 
 import database
 import pandas as pd
+import openpyxl as xl
 
 # Havasu class definition
 class Havasu:
@@ -99,3 +100,40 @@ class Havasu:
         df.to_excel(FILE_PATH)
     # function
 # class
+
+def readMitreData(self):
+    FILE_PATH = "MITRE-INPUT.xlsx"
+    wb = xl.load_workbook(FILE_PATH)
+
+    for i in wb.sheetnames:
+        print("Worksheet: ", i)
+        values = list()
+        df = pd.read_excel(FILE_PATH, sheet_name = i)
+
+        sql = "INSERT INTO mitre_detection"
+        sql = sql + " (Trojan_ID, ATTACK_ID, Tactic, Description, Malicious_Indicators, "
+        sql = sql + "Suspicious_Indicators, Informative_Indicators)"
+        sql = sql + " VALUES (%s, %s, %s, %s, %s, %s, %s)"
+
+        for index, row in df.iterrows():
+            trojan_id = row[0]
+            attack_id = row[1]
+            technique = row[2]
+            tactic = row[3]
+            mali = row[4]
+            susp = row[5]
+            info = row[6]
+
+            data = (trojan_id, attack_id, technique, tactic, mali, susp, info)
+            print(data) # DEGUGGING
+            values.append(data)
+
+            self.cursor.execute(sql, data)
+
+            #print(cursor.rowcount, "record inserted.")
+        # for
+
+        self.connection.commit()
+        print() # newline
+    # for
+# function

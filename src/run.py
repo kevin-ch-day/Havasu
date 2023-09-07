@@ -8,7 +8,7 @@ import sys
 def version():
     h = Havasu()
     print("Havasu version " + h.versionNumber())
-# functio
+# function
 
 # Record sample permissions
 def recordSamplePermissions():
@@ -61,6 +61,8 @@ def generatePermissionAnalysis():
 # Reading mitre data
 def readMitreData():
     print("** Reading Mitre Data")
+    h = Havasu()
+    h.readMitreData()
 # function
 
 # Generate mitre matrix
