@@ -3,6 +3,7 @@
 import database
 import pandas as pd
 import openpyxl as xl
+import mysql.connector
 
 # Havasu class definition
 class Havasu:
@@ -160,6 +161,28 @@ class Havasu:
         # for
     # function
 
+    # Standard Android Permissions
+    def getStandardAndroidPermissionList(self):
+        permissionList = list()
+
+        self.cursor.execute("show columns from detected_standard_permissions")
+        results = self.cursor.fetchall()
+        if not results:
+            print("[!!] - No permission columns retrieved from database.")
+            exit()
+        # if
+        
+        for i in results:
+            if 'ID' == i[0]:
+                pass
+            else:
+                permissionList.append(i[0])
+        # for
+
+        return permissionList
+    # function
+
+    # Classify detected permissions
     def classifyPermissions(self, trojan, permissions):
         standardFormatPerms = list()
         unknownPermissions = list()
@@ -191,36 +214,15 @@ class Havasu:
 
         print("Unknown Permissions found: ", len(unknownPermissions))
 
-        recordAndroidPermissions(trojan, standardFormatPerms)
+        Havasu.recordAndroidPermissions(trojan, standardFormatPerms)
         print("\nStandard Permissions found: ", len(standardFormatPerms))
-    # function
-
-    # Standard Android Permissions
-    def getStandardAndroidPermissionList(self):
-        permissionList = list()
-
-        self.cursor.execute("show columns from detected_standard_permissions")
-        results = self.cursor.fetchall()
-        if not results:
-            print("[!!] - No permission columns retrieved from database.")
-            exit()
-        # if
-        
-        for i in results:
-            if 'ID' == i[0]:
-                pass
-            else:
-                permissionList.append(i[0])
-        # for
-
-        return permissionList
     # function
 
     # Record Android Permissions
     def recordAndroidPermissions(self, trojan, permissions):
         updatedColumns = 0
         unknownPermissions = list()
-        standardPermissionList = getStandardAndroidPermissionList()
+        standardPermissionList = Havasu.getStandardAndroidPermissionList()
         FORMAT_HEADER = len("android.permission.")
 
         for index in permissions:
@@ -236,8 +238,8 @@ class Havasu:
                 try:
                     sql = "UPDATE detected_standard_permissions SET "
                     sql = sql + slicedPermissions + " = 'X' WHERE id = " + str(trojan)
-                    db_cursor.execute(sql)
-                    db_connection.commit()
+                    self.cursor.execute(sql)
+                    self.connection.commit()
                     updatedColumns = updatedColumns + 1
                 except mysql.connector.Error as err:
                     print("[!!] MySQL Error: {}".format(err))
@@ -248,7 +250,7 @@ class Havasu:
 
         print("\n** Standard permission columns **")
         print(str(updatedColumns) + " columns updated.")
-        recordNonStandardPermissions(trojan, unknownPermissions)
+        Havasu.recordNonStandardPermissions(trojan, unknownPermissions)
     # function
 
     def recordNonStandardPermissions(self, trojan, unknownPermissions):
@@ -256,8 +258,8 @@ class Havasu:
         addedCols = updatedCols = 0
 
         sql = "show columns from detected_unknown_permissions"
-        db_cursor.execute(sql)
-        dbResults = db_cursor.fetchall()
+        self.cursor.execute(sql)
+        dbResults = self.cursor.fetchall()
         if not dbResults:
             print("[!!] - No columns retrieved from: unknown_permissions")
             exit()
@@ -276,8 +278,8 @@ class Havasu:
         sql = "INSERT INTO detected_unknown_permissions (id) VALUES (%s)"
         val = (trojan, )
         try:
-            db_cursor.execute(sql, val)
-            db_connection.commit()
+            self.cursor.execute(sql, val)
+            self.connection.commit()
         except mysql.connector.Error as err:
             print("[!!] MySQL Error: {}".format(err))
         # try
@@ -291,8 +293,8 @@ class Havasu:
                 sql = "ALTER TABLE detected_unknown_permissions add " + index + " VARCHAR(1) NULL DEFAULT NULL"
 
                 try:
-                    db_cursor.execute(sql)
-                    db_connection.commit()
+                    self.cursor.execute(sql)
+                    self.connection.commit()
                     addedCols = addedCols + 1
                 except mysql.connector.Error as err:
                     print("[!!] MySQL Error: {}".format(err))
@@ -302,8 +304,8 @@ class Havasu:
             # update column within permission record
             sql = "update detected_unknown_permissions set " + index + " = 'X' where id = " + str(trojan)
             try:
-                db_cursor.execute(sql)
-                db_connection.commit()
+                self.cursor.execute(sql)
+                self.connection.commit()
                 updatedCols = updatedCols + 1
             except mysql.connector.Error as err:
                 print("[!!] MySQL Error: {}".format(err))
@@ -407,15 +409,6 @@ class Havasu:
         for index in buff:
             if index not in detectedPermissions:
                 missingPermissions.append(index.upper())
-                #for p in detectedPermissions:
-                    #if(index.upper() < p):
-                    #target_index = (detectedPermissions.index(p) - 1)
-                    #afterColumn = detectedPermissions[target_index]
-                    #sql = "ALTER TABLE detected_standard_permissions ADD "
-                    #sql = sql + index.upper() + " VARCHAR(1) NULL AFTER " + afterColumn
-                    #print("\n" + sql + "\n")
-                    #db_cursor.execute(sql)
-                # for
             # if
         # for
 
