@@ -1,42 +1,45 @@
 # run.py
 # Driver for Havasu
 
-from havasu import *
+import havasu
 import sys
 
 # Application version number
 def version():
-    h = Havasu()
-    print("Havasu version " + h.versionNumber())
+    print("Havasu version " + havasu.version())
 # function
 
 # Record sample permissions
 def recordSamplePermissions():
 
     # prompt to enter sample id
-    userSampleIdInput = input("Enter sample id: ")
-
-    if not isinstance(userSampleIdInput, int):
+    input_sample_id = input("Enter sample id: ")
+    
+    try:
+        testInput = int(input_sample_id) # convert to integer
+        if testInput <= 0:
+            print("ID cannot be zero or lower")
+        # if
+    except ValueError as err:
         print("[!!] Error: sample id input not an interger")
         exit(-1)
-    # if
-
-    TROJAN_ID = int(userSampleIdInput) # convert to integer
+    # try
     
-    # If no permissions records exist
-    if not Havasu.checkPermissionRecords(TROJAN_ID):
+    # If no permission records exist
+    if not havasu.checkPermissionRecords(input_sample_id):
 
         print("** Reading Permission Data")
-        permissions = Havasu.readDetectedPermissions()
+        permissions = havasu.readDetectedPermissions()
         permissions.sort()
+        print(permissions)
 
         print("** Creating permission records")
-        Havasu.createPermissionRecord(TROJAN_ID)
-        Havasu.classifyPermissions(TROJAN_ID, permissions)
+        havasu.createPermissionRecord(input_sample_id)
+        havasu.classifyPermissions(input_sample_id, permissions)
 
     # If permissions records exist
     else:
-        print("Premission records exist for " + str(TROJAN_ID))
+        print("Premission records exist for " + input_sample_id)
 
         # promot user if the want to delete permission record
         userDeletionInput = input("Do you want to delete permission records? (yes/no): ")
@@ -61,9 +64,9 @@ def generatePermissionAnalysis():
 # Reading mitre data
 def readMitreData():
     print("** Reading Mitre Data")
-    h = Havasu()
-    h.readMitreData()
-    h.populateMitreMatrixTable()
+
+    havasu.readMitreData()
+    havasu.populateMitreMatrixTable()
 # function
 
 # Generate mitre matrix
@@ -75,8 +78,7 @@ def generateMitreMatrix():
 def checkHash(hash):
     print("** Cheching hash")
     print("Hash: " + hash + "\n")
-    h = Havasu()
-    h.checkHash(hash)
+    havasu.checkHash(hash)
 # function
 
 def decompileAPK(apk):
@@ -100,7 +102,8 @@ def main(argv):
     elif argv[0] == '-h' or argv[0] == "--help":
         print("usage: havasu")
         print("-d, --decompile Decompile APK")
-        print("-h, --help Show help commands and usage\n")
+        print("-h, --help Show help commands and usage")
+        print("--hash Check hash against database\n")
         print("-i, --input Read data from INPUT directory")
         print("-------------------------------------------")
         print("\t-p, --permissions Read permission data")
@@ -109,7 +112,7 @@ def main(argv):
         print("-------------------------------------------")
         print("\t-p, --permissions Permission matrix")
         print("\t-m, --mitre Mitre matrix\n")
-        print("--hash Check hash against database")
+        print("-v --version Show version number")
 
     # Decompile APK command
     elif argv[0] == '-d' or argv[0] == '--decompile':

@@ -1,32 +1,27 @@
 # database.py
 import mysql.connector
 
-# Start database connection
-def startConnection(self):
+connection = None
+cursor = None
+
+def start():
     """ Connect to MySQL database """
+    global connection
+    global cursor
+
+    SERVER = "localhost"
+    USERNAME = "root"
+    DATABASE = "capstone_dev"
+    PASSWORD = ""
+    PORT = 3306
+
     try:
-        SERVER = "localhost"
-
-        # Username selection
-        #USER_NAME = "WebAdmin"
-        USER_NAME = "root"
-
-        # Database selection
-        #DATABASE_NAME = "capstone_prod"
-        DATABASE_NAME = "capstone_dev"
-
-        # Password selection
-        #PASSWORD = "Passwor01"
-        PASSWORD = ""
-
-        PORT_NUMBER = 3306
-
         connection = mysql.connector.connect(
             host = SERVER,
-            user = USER_NAME,
+            user = USERNAME,
             password = PASSWORD,
-            database = DATABASE_NAME,
-            port = PORT_NUMBER)
+            database = DATABASE,
+            port = PORT)
 
         if not connection.is_connected():
             print("Cannot connected to data.\n")
@@ -34,43 +29,21 @@ def startConnection(self):
         # if
 
         cursor = connection.cursor()
-        return cursor, connection
 
     except Exception as exp:
-        print("[!!]- Error start database connection.\n")
+        print("[!!]- Error start database connection")
         print(str(exp))
     # try
 # function
 
-# End database connection
-def endConnection(self):
+def close():
     """ disconnect to MySQL database """
+    global connection
+
     try:
-        self.connection.close()
+        connection.close()
     except Exception as exp:
-        print("[!!] - Error ending database connection.\n")
+        print("[!!] - Error ending database connection")
         print(str(exp))
     # try
-# function
-
-# Check database configuration
-def checkDatabaseConfig(self):
-
-    # check for android_permissions table
-    
-    # check for banking_samples
-    
-    # check for detected_standard_permissions
-    
-    # check for detected_unknown_permissions
-    
-    # check for malware_samples
-    
-    # check for mitre_detection
-    
-    # check for mitre_matrix
-    
-    # check for mobfs_analysis
-
-    pass
 # function
