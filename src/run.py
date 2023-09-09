@@ -1,12 +1,12 @@
 # run.py
 # Driver for Havasu
 
-import havasu
+import Havasu
 import sys
 
 # Application version number
 def version():
-    print("Havasu version " + havasu.version())
+    print("Havasu version " + Havasu.version())
 # function
 
 # Record sample permissions
@@ -26,16 +26,16 @@ def recordSamplePermissions():
     # try
     
     # If no permission records exist
-    if not havasu.checkPermissionRecords(input_sample_id):
+    if not Havasu.checkPermissionRecords(input_sample_id):
 
         print("** Reading Permission Data")
-        permissions = havasu.readDetectedPermissions()
+        permissions = Havasu.readDetectedPermissions()
         permissions.sort()
         print(permissions)
 
         print("** Creating permission records")
-        havasu.createPermissionRecord(input_sample_id)
-        havasu.classifyPermissions(input_sample_id, permissions)
+        Havasu.createPermissionRecord(input_sample_id)
+        Havasu.classifyPermissions(input_sample_id, permissions)
 
     # If permissions records exist
     else:
@@ -65,8 +65,8 @@ def generatePermissionAnalysis():
 def readMitreData():
     print("** Reading Mitre Data")
 
-    havasu.readMitreData()
-    havasu.populateMitreMatrixTable()
+    Havasu.readMitreData()
+    Havasu.populateMitreMatrixTable()
 # function
 
 # Generate mitre matrix
@@ -78,7 +78,7 @@ def generateMitreMatrix():
 def checkHash(hash):
     print("** Cheching hash")
     print("Hash: " + hash + "\n")
-    havasu.checkHash(hash)
+    Havasu.checkHash(hash)
 # function
 
 def decompileAPK(apk):
