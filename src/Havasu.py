@@ -10,30 +10,30 @@ import zipfile
 
 VERSION_NUMBER = "1.0.1"
 
+# start database connection
 def startDB():
     database.start()
-# function
 
+# end database connection
 def endDB():
     database.end()
-# function
 
-# APK Tool
+# OS Tool: apktool d
+# decompile APK file
 def decompileAPK(apk):
     os.system("apktool d " + apk)
-# function
 
-# DEX2JAR Tool
+# OS Tool: dex2jar
+# convert APK to JAR file
 def generateJAR(apk):
     os.system("d2j-dex2jar " + apk)
-# function 
-
+ 
+# Display version number
 def version():
     global VERSION_NUMBER
     return VERSION_NUMBER
-# function
 
-# Check hash
+# Check supplied hash against database
 def checkHash(hash):
     hashFound = False
     
@@ -79,7 +79,6 @@ def displayMalwareRecord(record):
     print("Family:\t\t" + record[2])
     print("Size:\t\t" + record[12])
     print("VirusTotal:\t" + record[4])
-# function
 
 # check permission records
 def checkPermissionRecords(id):
@@ -89,7 +88,6 @@ def checkPermissionRecords(id):
     if not results:
         return None
     # if
-# function
 
 # create scan record for trojan id
 def createPermissionRecord(trojan_id):
@@ -98,23 +96,6 @@ def createPermissionRecord(trojan_id):
     database.cursor.execute(sql, val)
     database.connection.commit()
     print("Permission record created for " + trojan_id)
-# function
-
-# Generate sample data by ids to .xlsx file
-def outputMalwareRecordsById(ids):
-    FILE_PATH = "OUTPUT\\Output-Excel.xlsx"
-    sql = "SELECT * FROM mobfs_analysis WHERE id in " + ids
-    df = pd.read_sql_query(sql, database.cursor)
-    df.to_excel(FILE_PATH)
-# function
-
-# Generate sample data by family to .xlsx file
-def outputMalwareRecordsByFamily(database, family):
-    FILE_PATH = "OUTPUT\\Output-Excel.xlsx"
-    sql = "SELECT * FROM malware_samples WHERE family = '" + family + "'"        
-    df = pd.read_sql_query(sql, database.cursor)
-    df.to_excel(FILE_PATH)
-# function
 
 # Read mitre data
 def readMitreData():
@@ -151,7 +132,6 @@ def readMitreData():
         database.connection.commit()
         print() # newline
     # for
-# function
 
 # read detected permission from text file
 def readDetectedPermissions():
@@ -162,7 +142,6 @@ def readDetectedPermissions():
     # for
 
     return buff
-# function
 
 # Standard Android Permissions
 def getStandardAndroidPermissionList():
@@ -182,7 +161,6 @@ def getStandardAndroidPermissionList():
             permissionList.append(i[0])
     # for
     return permissionList
-# function
 
 # Classify detected permissions
 def classifyPermissions(trojan, permissions):
@@ -217,7 +195,6 @@ def classifyPermissions(trojan, permissions):
     print("Unknown Permissions found: ", len(unknownPermissions))
     recordAndroidPermissions(trojan, standardFormatPerms)
     print("\nStandard Permissions found: ", len(standardFormatPerms))
-# function
 
 # Record Android Permissions
 def recordAndroidPermissions(trojan, permissions):
@@ -252,7 +229,6 @@ def recordAndroidPermissions(trojan, permissions):
     print("\n** Standard permission columns **")
     print(str(updatedColumns) + " columns updated.")
     recordNonStandardPermissions(trojan, unknownPermissions)
-# function
 
 def recordNonStandardPermissions(trojan, unknownPermissions):
     dbCols = list()
@@ -315,8 +291,625 @@ def recordNonStandardPermissions(trojan, unknownPermissions):
 
     print(str(addedCols) + " columns added.")
     print(str(updatedCols) + " columns updated.\n")
-# function
 
+# Generate mitre matrix
+def generateMitreMatrix(sample_set):
+    FILE_PATH = 'OUTPUT\\Mitre-Matrix.xlsx'
+    
+    sql = "select * from mitre_matrix "
+    sql = sql + " where trojan_id in " + sample_set
+    sql = sql + " order by trojan_id"
+
+    df_raw = pd.read_sql_query(sql, database.connection)
+
+    cols = df_raw.columns.tolist()
+    cols.sort()
+    cols.remove('trojan_id')
+
+    df_beta = pd.DataFrame()
+    df_beta['trojan_id'] = df_raw['trojan_id']
+    df_alpha = df_raw.drop(columns=['trojan_id'])
+
+    for column in cols:
+        for cell in df_alpha[column]:
+            if cell is not None:
+                df_beta[column] = df_alpha[column]
+            break
+            # if
+        # for
+    # for
+    df_beta.to_excel(FILE_PATH)
+
+
+# Read AndroidManifest.xml permissions
+def getManifestPermissions(androidManifest):
+    standardPermissions = list()
+    unknownPermissions = list()
+    signaturePermissions = list()
+    temp_string = ""
+
+    for index in androidManifest:
+        if "uses-permission" in index:
+            startPos = index.find("android:name=")
+            offset = len("android:name=")+1
+            temp_string = index[startPos+offset:-4]
+
+            if "permission " in temp_string:
+                temp = len("permission android.permission.")
+                temp_string = temp_string[temp:]
+                standardPermissions.append(temp_string)
+                                
+            elif "com." in temp_string:
+                unknownPermissions.append(temp_string)
+                                
+            else:
+                temp = len("android.permission.")
+                temp_string = temp_string[temp:]
+                standardPermissions.append(temp_string)
+            # if
+        # if
+    # for
+    
+    standardPermissions.sort()
+    unknownPermissions.sort()
+    return standardPermissions, unknownPermissions
+
+# Get permissions
+def getPermissions(manifest):
+    detectedPermissions = list()
+    unknownPermissionFormat = False
+    unknownExample = ""
+    unknownCnt = 0
+    
+    for manifestLine in manifest:
+        manifestLine = manifestLine.strip() # remove whitespace
+        
+        # check is user-permission is within manifest line
+        if "uses-permission" in manifestLine:
+
+            # standard formatted Android permission
+            if "android:name=" in manifestLine:
+                # find beginning of permission
+                startIndex = manifestLine.index("android:name=")# starting index
+                temp = manifestLine[startIndex + len("android:name=") + 1 :] # slice
+            
+                # find end of permission
+                endIndex = temp.index("\"/>") # ending index
+                temp = temp[:endIndex] # slice
+            
+                #print(sPerm) # DEBUG: Captured Permission
+                detectedPermissions.append(temp)
+                
+            # Non-standard formatted Android Permission
+            elif "android.permission." in manifestLine:
+                #print(manifestLine) # DEBUGGING
+                temp = manifestLine[manifestLine.index("android.permission."):]
+                endIndex = temp.index("\"/>")
+                permissionSliced = temp[:endIndex]
+                detectedPermissions.append(permissionSliced)
+                unknownPermissionFormat = True
+                if unknownPermissionFormat:
+                    unknownExample = manifestLine
+                    unknownCnt = unknownCnt + 1
+                # if
+                
+            # default
+            else:
+                print("[*] Cannot process permission: " + manifestLine)
+            # if
+        # if
+    # for
+    
+    if unknownPermissionFormat:
+        print("\n[*] Possible permission obfuscation: " + str(unknownCnt))
+        print("Example: " + unknownExample)
+    # if
+
+    detectedPermissions = list(dict.fromkeys(detectedPermissions))
+    detectedPermissions.sort()
+    
+    return detectedPermissions
+
+# Get AndroidManifest.xml services
+def getManifestServices(manifest):
+    services = list() # empty list
+    for line in manifest:
+        if "<service " in line:
+            startPos = line.find("android:name=")+len("android:name=\"")
+            temp = line[startPos:]
+            endPos = int(temp.find("\""))
+            services.append(temp[:(endPos)])
+        # if
+    # for
+    
+    services.sort() # sort services found
+    return services
+
+# Get APK META data
+def getAPKMetaData(manifest):
+    for index in manifest:
+        if "<manifest " in index:
+            startPos = index.find("compileSdkVersion=\"")
+            sliced = index[startPos:]
+            
+            # check if at end of the tag
+            if not sliced.find("\" ") == -1:
+                endPos = sliced.find("\" ")
+            else:
+                endPos = sliced.find("\">")
+            # if
+
+            compileSdkVersion = sliced[sliced.find("\"")+1:endPos]
+            startPos = index.find("compileSdkVersionCodename=\"")
+            sliced = index[startPos:]
+
+            # check if at end of the tag
+            if not sliced.find("\" ") == -1:
+                endPos = sliced.find("\" ")
+            else:
+                endPos = sliced.find("\">")
+            # if
+
+            compileSdkVersionCodename = sliced[sliced.find("\"")+1:endPos]
+
+            startPos = index.find("package=\"")
+            sliced = index[startPos:]
+            
+            # check if at end of the tag
+            if not sliced.find("\" ") == -1:
+                endPos = sliced.find("\" ")
+            else:
+                endPos = sliced.find("\">")
+            # if
+
+            apkPackagename = sliced[sliced.find("\"")+1:endPos]
+            startPos = index.find("platformBuildVersionCode=\"")
+            sliced = index[startPos:]
+
+            # check if at end of the tag
+            if not sliced.find("\" ") == -1:
+                endPos = sliced.find("\" ")
+            else:
+                endPos = sliced.find("\">")
+            # if
+
+            platformBuildVersionCode = sliced[sliced.find("\"")+1:endPos]
+            startPos = index.find("platformBuildVersionName=\"")
+            sliced = index[startPos:]
+
+            # check if at end of the tag
+            if not sliced.find("\" ") == -1:
+                endPos = sliced.find("\" ")
+            else:
+                endPos = sliced.find("\">")
+            # if
+
+            platformBuildVersionName = sliced[sliced.find("\"")+1:endPos]
+            return compileSdkVersion, compileSdkVersionCodename, apkPackagename, platformBuildVersionCode, platformBuildVersionName
+        # if
+    # for
+
+# Get AndroidManifest.xml features used
+def getManifestFeaturesUsed(manifest):
+    usesFeatures = dict()
+    unknownFeatures = list()
+    unknownFeaturesFound = False
+    
+    for index in manifest:
+        if "<uses-feature " in index:
+            featureName = ""
+            glEsVersion = ""
+
+            if not index.find("android:name=\"") == -1:
+                startPos = index.find("android:name=\"")
+                sliced = index[startPos+len("android:name=\""):]
+                endPos = sliced.find("\"")
+                featureName = sliced[:endPos]
+
+                #print("Feature: "+featureName)
+                key = featureName
+
+            elif not index.find("android:glEsVersion=\"") == -1: 
+                startPos = index.find("android:glEsVersion=\"")
+                sliced = index[startPos+len("android:glEsVersion=\""):]
+                endPos = sliced.find("\"")
+                glEsVersion = sliced[:endPos]
+                
+                #print("Gles Version: "+glEsVersion)
+                key = "glEsVersion=" + glEsVersion
+            else:
+                unknownFeatures.append(index.strip())
+                unknownFeatures = True
+                continue
+            # if
+
+            if not index.find("android:required=\"") == -1:
+                startPos = index.find("android:required=\"")
+                x = index[startPos+len("android:required=\""):]
+                status = x[:x.find("\"")]
+
+                if status.lower() == "true":
+                    usesFeatures[key] = True
+                    continue # next iteration
+                # if
+
+            #print("Required: "+str(isRequired)+"\n")
+            usesFeatures[key] = False
+        # if
+    # for
+    
+    if unknownFeatures:
+        print("\nUnknown Features Found:")
+        cnt = 1
+        for i in unknownFeatures:
+            print("["+str(cnt)+"] "+i)
+            cnt = cnt + 1 # increment count
+        # for
+    # if
+
+    return usesFeatures
+
+# AndroidManifest.xml to text
+def manifestToTxt(apk):
+    name = apk[:-4]
+    ANDROID_MANIFEST_PATH = "./" + apk + "/AndroidManifest.xml"
+    OUTPUT_PATH = "OUTPUT/" + name + "_AndroidManifest.txt"
+    
+    try:
+        manifest = open(ANDROID_MANIFEST_PATH, "r")
+        androidManifest = manifest.readlines() # copy manifest
+        manifest.close()
+        f = open(OUTPUT_PATH, "w")
+        
+        try:
+            for i in androidManifest:
+                f.write(i)
+        finally:
+            f.close()
+        # try
+
+    except IOError as e:
+        print("I/O error({0}): {1}".format(e.errno, e.strerror))
+        exit()
+    # try
+
+# Log detected Android permissions
+def logPermissions(apk):
+    APK_NAME = apk[:-4]
+    ANDROID_MANIFEST_PATH = "./" + APK_NAME + "/AndroidManifest.xml"
+    PERMISSION_LOG_PATH = "OUTPUT/" + APK_NAME + "_DetectedPermissions.txt"	
+
+    # Scan AndroidManifest.xml
+    try:
+        manifest = open(ANDROID_MANIFEST_PATH, "r")
+        androidManifest = manifest.readlines() # copy manifest
+        manifest.close()
+    except IOError as e:
+        print("I/O error({0}): {1}".format(e.errno, e.strerror))
+        exit()
+    finally:
+        manifest.close()
+    # try
+
+    standardPerms = list()
+    unknownPerms = list()
+    
+    detectedPermissions = getPermissions(androidManifest)
+    NUM_PERMISSIONS = str(len(detectedPermissions))
+    #print("Total permissions: " + NUM_DETECTED_PERMISSIONS)
+    if(NUM_PERMISSIONS == 0 ):
+        print("No permissions detected [!!]")
+        return
+    # if
+    
+    for index in detectedPermissions:
+        if "android.permission." in index:
+            standardPerms.append(index)
+        else:
+            unknownPerms.append(index)
+        # if
+    # for
+    
+    log = open(PERMISSION_LOG_PATH, "w")
+    try:
+        log.write("APK NAME: " + APK_NAME +"\n")
+        log.write("Total permissions: " + NUM_PERMISSIONS + "\n\n")
+        
+        # standard format permissions
+        standardPerms.sort()
+        NUM_STANDARD_PERMISSIONS = len(standardPerms)
+        print("\nStandard permissions: "+str(NUM_STANDARD_PERMISSIONS))
+        log.write("Standard permissions: " + str(NUM_STANDARD_PERMISSIONS) + "\n")
+        log.write("----------------------------\n")
+        for index in standardPerms:
+            log.write(index + "\n")
+        # for
+        
+        # unknown permissions
+        unknownPerms.sort()
+        NUM_UNKNOWN_PERMISSIONS = len(unknownPerms)
+        if NUM_UNKNOWN_PERMISSIONS != 0:
+            print("\nUnknown permissions: " + str(NUM_UNKNOWN_PERMISSIONS))
+            log.write("\nUnknown permissions: " + str(NUM_UNKNOWN_PERMISSIONS) + "\n")
+            log.write("----------------------------\n")
+            for index in unknownPerms:
+                log.write(index + "\n")
+            # for
+        # if
+    except IOError:
+        print("IO ERROR")
+    # try
+
+# Analyze Android manifest
+def analyzeAndroidManifest(apk):
+    APK_NAME = apk[:-4]
+
+    ANALYIS_LOG_PATH = "OUTPUT/" + APK_NAME + "_AnalysisLog.txt"
+    DATE = datetime.datetime.now().strftime("%A %B %d, %Y %I:%M %p")
+    ANDROID_MANIFEST_PATH = "./" + APK_NAME + "/AndroidManifest.xml"
+    
+    # Scan AndroidManifest.xml
+    try:
+        f = open(ANDROID_MANIFEST_PATH, "r")
+        androidManifest = f.readlines() # copy manifest
+        f.close()
+    except IOError as e:
+        print("I/O error({0}): {1}".format(e.errno, e.strerror))
+        exit()
+    finally:
+        f.close()
+    # try
+
+    compileSdkVersion, compileSdkVersionCodename, apkPackagename, platformBuildVersionCode, platformBuildVersionName = getAPKMetaData(androidManifest)
+    standardPermissions, customPermissions = getManifestPermissions(androidManifest)
+    num_permissions = str(len(standardPermissions) +  len(customPermissions))
+
+    log = open(ANALYIS_LOG_PATH, "w")
+    log.write("File: "+apk+"\n")
+    log.write("Date: " + DATE + "\n")
+    log.write("Package: " + apkPackagename + "\n")
+    log.write("Compiled SDK Version: " + compileSdkVersion + "\n")
+    log.write("Compiled SDK Version Codename: " + compileSdkVersionCodename + "\n")
+    log.write("Platform Build Version Code: " + platformBuildVersionCode + "\n")
+    log.write("Platform Build Version Name: " + platformBuildVersionName + "\n")
+    log.write("Total Permissions: " + num_permissions+"\n")
+    
+    # Standard Permissions
+    log.write("\nStandard Permissions: " + str(len(standardPermissions)) + "\n")
+    for i in standardPermissions:
+        log.write(i + "\n")
+    # for
+    log.write("\n")
+    
+    # Custom Permissions
+    log.write("Unknown Permissions: " + str(len(customPermissions)) + "\n")
+    for i in customPermissions:
+        log.write(i + "\n")
+    log.write("\n")
+
+    # Log uses-features
+    uses_features = getManifestFeaturesUsed(androidManifest)
+    if uses_features:
+        log.write("USES-FEATURES\n")
+        for key,value in uses_features.items():
+            log.write(key+" "+str(value)+"\n")
+        log.write("\n")
+    # if
+    
+    # Log APK services
+    services = getManifestServices(androidManifest)
+    log.write("Services\n")
+    
+    for i in services:
+        log.write(i + "\n")
+    log.write("\n")
+
+# Load Mitre data
+def loadMitreData():
+    print("loadMitreData()") # DEBUGGING
+    
+    columns = set() # empty set
+
+    sql = "select distinct description, attack_id"
+    sql = sql + " from mitre_detection"
+    sql = sql + " order by description, attack_id"
+
+    results = pd.read_sql_query(sql, database.connection)
+    records = pd.DataFrame(results)
+
+    for index, row in records.iterrows():
+        col = row[0] + " " + row[1]
+        columns.add(col)
+    # for
+
+    return sorted(columns)
+
+# Mitre data dictionary
+def getMitreDict():
+    print("getMitreDict()") # DEBUGGING
+
+    dict_mitre = dict()  
+    for i in loadMitreData():
+        dict_mitre[i] = list()
+    # for
+
+    print("\nLoading Mitre Data") # newline
+    print("---------------") # newline
+    for k in dict_mitre:
+        print(k)
+    # for
+    print() # newline
+
+    sql = "select description, ATTACK_ID, trojan_id"
+    sql = sql + " from mitre_detection"
+    sql = sql + " order by trojan_id, description, ATTACK_ID"
+
+    results = pd.read_sql_query(sql, database.connection)
+    df_samples = pd.DataFrame(results)
+
+    for index, row in df_samples.iterrows():
+        key = row[0] + " " + row[1]
+        #print(key)
+        items = dict_mitre[key]
+        items.append(row[2])
+        items.sort()
+        dict_mitre[key] = items
+    # for
+
+    return dict_mitre
+
+# Get mitre matrix columns
+def getMitreMatrixColumns():
+    print("getMitreMatrixColumns()") # DEBUGGING
+
+    sql = "SHOW COLUMNS FROM mitre_matrix"
+    results = pd.read_sql_query(sql, database.connection)
+    
+    cols = results.loc[:, 'Field']  
+    cols = cols.drop(cols.index[0])
+
+    return cols.tolist()
+
+# Get sample ids
+def getSampleIds():
+    print("getSampleIds()") # DEBUGGING
+
+    sql = "select DISTINCT trojan_id from mitre_detection"
+    results = pd.read_sql_query(sql, database.connection)
+    records = pd.DataFrame(results)
+    
+    temp = list()
+    for i in records.loc[:, 'trojan_id']:
+        temp.append(i)
+    # for
+    temp.sort()
+
+    return temp
+
+# Add ids mitra matrix
+def addIdsMitreMatrix():
+    print("addIdsMitreMatrix()") # DEBUGGING
+
+    samples = getSampleIds()
+
+    for index in samples:
+        sql = "select * from mitre_matrix where trojan_id = " + str(index)
+        results = pd.read_sql_query(sql, database.connection)
+        
+        if results.empty:
+            sql = "insert into mitre_matrix (trojan_id) value (%s)"
+            database.cursor.execute(sql, (str(index),))
+            database.connection.commit()
+
+            print("Added sample id: " + str(index))
+        # if
+    # for
+
+    print() # newline
+
+# Populate mitre matrix table
+def populateMitreMatrixTable():
+    addIdsMitreMatrix()
+
+    columns = getMitreMatrixColumns()
+    dict_mitreMatrix = getMitreDict()
+    
+    # iterator to find any missing columns 
+    for index in dict_mitreMatrix:
+        
+        # check if column does not exist in the table
+        if index not in columns:
+            print(index + " Does not exist")
+            sql = "ALTER TABLE `mitre_matrix` ADD `"+ index +"` varchar(1) null"
+            database.cursor.execute(sql)
+            database.connection.commit()
+        # if
+    # for
+    print() # newline
+
+    for key in dict_mitreMatrix:
+        print(key)
+        values = dict_mitreMatrix[key]
+        
+        for i in values:
+            sql = "UPDATE mitre_matrix SET `" + key + "` = 'X' WHERE trojan_id = " + str(i)
+            database.cursor.execute(sql)
+            database.connection.commit()
+        # for
+    # for
+
+# Generate LatTeX Charts
+def generateLaTexCharts(family):
+    sql = "SELECT ID, "
+    sql = sql + "Kaspersky_Label Kaspersky, "
+    sql = sql + "HybridAnalysis_Label HybridAnalysis, "
+    sql = sql + "VirusTotal_DetectionRatio, "
+    sql = sql + "HybridAnalysis_AV_Detection "
+    sql = sql + "FROM malware_samples "
+    sql = sql + "WHERE family = '" + family + "' order by id"
+
+    database.cursor.execute(sql)
+    results = database.cursor.fetchall()
+    displayLaTeXCharts(results, "\nDataset Labels\n")
+
+    sql = "SELECT y.id, y.security_score score, y.grade, "
+    sql = sql + "y.trackers_detections tracker, y.high_risks, y.medium_risks "
+    sql = sql + "FROM malware_samples x JOIN mobfs_analysis y ON y.id = x.id "
+    sql = sql + "where x.family = '" + family + "' order by x.id"
+
+    database.cursor.execute(sql)
+    results = database.cursor.fetchall()
+    displayLaTeXCharts(results, "\nMobSF Security Score\n")
+
+    sql = "select x.id, "
+    sql = sql + "x.size, "
+    sql = sql + "x.Target_SDK, x.Minimum_SDK,"
+    sql = sql + "y.activities, "
+    sql = sql + "y.services, "
+    sql = sql + "y.receivers, "
+    sql = sql + "y.providers "
+    sql = sql + "from malware_samples x "
+    sql = sql + "join mobfs_analysis y "
+    sql = sql + "on y.id = x.id "
+    sql = sql + "where x.family = '" + family + "' "
+    sql = sql + "order by x.id "
+
+    database.cursor.execute(sql)
+    results = database.cursor.fetchall()
+    displayLaTeXCharts(results, "\nStatic Analysis\n")
+
+# Display LaTeX Charts
+def displayLaTeXCharts(results, chartTitle):
+    print(chartTitle)
+    for row in results:
+        buff = ""
+        cnt = 0
+        for element in row:
+            if cnt == (len(row) - 1):
+                buff = buff + str(element) + " \\\\"
+            else:
+                buff = buff + str(element) + " & "
+            # if
+            cnt = cnt + 1 # increment
+        # for
+        print(buff)
+    # for
+
+# Generate sample data by ids to .xlsx file
+def outputMalwareRecordsById(ids):
+    FILE_PATH = "OUTPUT\\Output-Excel.xlsx"
+    sql = "SELECT * FROM mobfs_analysis WHERE id in " + ids
+    df = pd.read_sql_query(sql, database.cursor)
+    df.to_excel(FILE_PATH)
+
+# Generate sample data by family to .xlsx file
+def outputMalwareRecordsByFamily(database, family):
+    FILE_PATH = "OUTPUT\\Output-Excel.xlsx"
+    sql = "SELECT * FROM malware_samples WHERE family = '" + family + "'"        
+    df = pd.read_sql_query(sql, database.cursor)
+    df.to_excel(FILE_PATH)
+
+# Standard Permissions
 def outputStandardPermissions(sample_set):
     EXCEL_FILE = 'OUTPUT\\Android-Permissions.xlsx'
     
@@ -341,7 +934,6 @@ def outputStandardPermissions(sample_set):
     # for
 
     df_beta.to_excel(EXCEL_FILE)
-# function
 
 # Unknown Permissions
 def outputUnknownPermissions(sample_set):
@@ -368,7 +960,6 @@ def outputUnknownPermissions(sample_set):
     # for
 
     df_beta.to_excel(FILE_PATH)
-# function
 
 # Normal Permissions
 def outputNormalPermissions(sample_set):
@@ -445,646 +1036,3 @@ def outputNormalPermissions(sample_set):
     # for
 
     df_beta.to_excel(EXCEL_FILE)
-# function
-
-# Generate mitre matrix
-def generateMitreMatrix(sample_set):
-    FILE_PATH = 'OUTPUT\\Mitre-Matrix.xlsx'
-    
-    sql = "select * from mitre_matrix "
-    sql = sql + " where trojan_id in " + sample_set
-    sql = sql + " order by trojan_id"
-
-    df_raw = pd.read_sql_query(sql, database.connection)
-
-    cols = df_raw.columns.tolist()
-    cols.sort()
-    cols.remove('trojan_id')
-
-    df_beta = pd.DataFrame()
-    df_beta['trojan_id'] = df_raw['trojan_id']
-    df_alpha = df_raw.drop(columns=['trojan_id'])
-
-    for column in cols:
-        for cell in df_alpha[column]:
-            if cell is not None:
-                df_beta[column] = df_alpha[column]
-            break
-            # if
-        # for
-    # for
-    df_beta.to_excel(FILE_PATH)
-# function
-
-# Scan AndroidManifest.xml
-def scanManifest(manifest_path):
-    manifestCopy = None
-    
-    try:
-        manifest = open(manifest_path, "r")
-        manifestCopy = manifest.readlines() # copy manifest
-        manifest.close()
-        
-    except IOError as e:
-        print("I/O error({0}): {1}".format(e.errno, e.strerror))
-        exit()
-    # try
-    
-    return manifestCopy  
-# function
-
-# Read AndroidManifest.xml permissions
-def getManifestPermissions(androidManifest):
-    standardPermissions = list()
-    unknownPermissions = list()
-    signaturePermissions = list()
-    temp_string = ""
-
-    for index in androidManifest:
-        if "uses-permission" in index:
-            startPos = index.find("android:name=")
-            offset = len("android:name=")+1
-            temp_string = index[startPos+offset:-4]
-
-            if "permission " in temp_string:
-                temp = len("permission android.permission.")
-                temp_string = temp_string[temp:]
-                standardPermissions.append(temp_string)
-                                
-            elif "com." in temp_string:
-                unknownPermissions.append(temp_string)
-                                
-            else:
-                temp = len("android.permission.")
-                temp_string = temp_string[temp:]
-                standardPermissions.append(temp_string)
-            # if
-        # if
-    # for
-    
-    standardPermissions.sort()
-    unknownPermissions.sort()
-    return standardPermissions, unknownPermissions
-# function
-
-# Get permissions
-def getPermissions(manifest):
-    detectedPermissions = list()
-    unknownPermissionFormat = False
-    unknownExample = ""
-    unknownCnt = 0
-    
-    for manifestLine in manifest:
-        manifestLine = manifestLine.strip() # remove whitespace
-        
-        # check is user-permission is within manifest line
-        if "uses-permission" in manifestLine:
-
-            # standard formatted Android permission
-            if "android:name=" in manifestLine:
-                # find beginning of permission
-                startIndex = manifestLine.index("android:name=")# starting index
-                temp = manifestLine[startIndex + len("android:name=") + 1 :] # slice
-            
-                # find end of permission
-                endIndex = temp.index("\"/>") # ending index
-                temp = temp[:endIndex] # slice
-            
-                #print(sPerm) # DEBUG: Captured Permission
-                detectedPermissions.append(temp)
-                
-            # Non-standard formatted Android Permission
-            elif "android.permission." in manifestLine:
-                #print(manifestLine) # DEBUGGING
-                temp = manifestLine[manifestLine.index("android.permission."):]
-                endIndex = temp.index("\"/>")
-                permissionSliced = temp[:endIndex]
-                detectedPermissions.append(permissionSliced)
-                unknownPermissionFormat = True
-                if unknownPermissionFormat:
-                    unknownExample = manifestLine
-                    unknownCnt = unknownCnt + 1
-                # if
-                
-            # default
-            else:
-                print("[*] Cannot process permission: " + manifestLine)
-            # if
-        # if
-    # for
-    
-    if unknownPermissionFormat:
-        print("\n[*] Possible permission obfuscation: " + str(unknownCnt))
-        print("Example: " + unknownExample)
-    # if
-
-    detectedPermissions = list(dict.fromkeys(detectedPermissions))
-    detectedPermissions.sort()
-    
-    return detectedPermissions
-# function
-
-# Get AndroidManifest.xml services
-def getManifestServices(manifest):
-    services = list() # empty list
-    for line in manifest:
-        if "<service " in line:
-            startPos = line.find("android:name=")+len("android:name=\"")
-            temp = line[startPos:]
-            endPos = int(temp.find("\""))
-            services.append(temp[:(endPos)])
-        # if
-    # for
-    
-    services.sort() # sort services found
-    return services
-# function
-
-# JAR file
-# def analyzeJAR(apk):
-#     pos = apk.find(".")
-#     jar = apk[:pos] + "-dex2jar.jar"
-#     zippedFile = zipfile.ZipFile(jar, 'r')
-#     jarClasses = list()
-#     try:
-#         lst = zf.infolist()
-#         for zi in lst:
-#             fn = zi.filename
-#             if fn.endswith('.class'):
-#                 jarClasses.append(fn)
-#             # if
-#         # for
-#     except IOError:
-#         print ('unable to read file {file}'.format(file = jar))
-#         exit(1)
-#     except zipfile.BadZipfile:
-#         print ('file {file} is not a zip file'.format(file = jar))
-#         exit(1)
-#     finally:
-#         zippedFile.close()
-#     # try
-#     return jarClasses
-# # function
-
-# Get APK META data
-def getAPKMetaData(manifest):
-    for index in manifest:
-        if "<manifest " in index:
-            startPos = index.find("compileSdkVersion=\"")
-            sliced = index[startPos:]
-            
-            # check if at end of the tag
-            if not sliced.find("\" ") == -1:
-                endPos = sliced.find("\" ")
-            else:
-                endPos = sliced.find("\">")
-            # if
-
-            compileSdkVersion = sliced[sliced.find("\"")+1:endPos]
-            startPos = index.find("compileSdkVersionCodename=\"")
-            sliced = index[startPos:]
-
-            # check if at end of the tag
-            if not sliced.find("\" ") == -1:
-                endPos = sliced.find("\" ")
-            else:
-                endPos = sliced.find("\">")
-            # if
-
-            compileSdkVersionCodename = sliced[sliced.find("\"")+1:endPos]
-
-            startPos = index.find("package=\"")
-            sliced = index[startPos:]
-            
-            # check if at end of the tag
-            if not sliced.find("\" ") == -1:
-                endPos = sliced.find("\" ")
-            else:
-                endPos = sliced.find("\">")
-            # if
-
-            apkPackagename = sliced[sliced.find("\"")+1:endPos]
-            startPos = index.find("platformBuildVersionCode=\"")
-            sliced = index[startPos:]
-
-            # check if at end of the tag
-            if not sliced.find("\" ") == -1:
-                endPos = sliced.find("\" ")
-            else:
-                endPos = sliced.find("\">")
-            # if
-
-            platformBuildVersionCode = sliced[sliced.find("\"")+1:endPos]
-            startPos = index.find("platformBuildVersionName=\"")
-            sliced = index[startPos:]
-
-            # check if at end of the tag
-            if not sliced.find("\" ") == -1:
-                endPos = sliced.find("\" ")
-            else:
-                endPos = sliced.find("\">")
-            # if
-
-            platformBuildVersionName = sliced[sliced.find("\"")+1:endPos]
-            return compileSdkVersion, compileSdkVersionCodename, apkPackagename, platformBuildVersionCode, platformBuildVersionName
-        # if
-    # for
-# function
-
-# Get AndroidManifest.xml features used
-def getManifestFeaturesUsed(manifest):
-    usesFeatures = dict()
-    unknownFeatures = list()
-    unknownFeaturesFound = False
-    
-    for index in manifest:
-        if "<uses-feature " in index:
-            featureName = ""
-            glEsVersion = ""
-
-            if not index.find("android:name=\"") == -1:
-                startPos = index.find("android:name=\"")
-                sliced = index[startPos+len("android:name=\""):]
-                endPos = sliced.find("\"")
-                featureName = sliced[:endPos]
-
-                #print("Feature: "+featureName)
-                key = featureName
-
-            elif not index.find("android:glEsVersion=\"") == -1: 
-                startPos = index.find("android:glEsVersion=\"")
-                sliced = index[startPos+len("android:glEsVersion=\""):]
-                endPos = sliced.find("\"")
-                glEsVersion = sliced[:endPos]
-                
-                #print("Gles Version: "+glEsVersion)
-                key = "glEsVersion=" + glEsVersion
-            else:
-                unknownFeatures.append(index.strip())
-                unknownFeatures = True
-                continue
-            # if
-
-            if not index.find("android:required=\"") == -1:
-                startPos = index.find("android:required=\"")
-                x = index[startPos+len("android:required=\""):]
-                status = x[:x.find("\"")]
-
-                if status.lower() == "true":
-                    usesFeatures[key] = True
-                    continue # next iteration
-                # if
-
-            #print("Required: "+str(isRequired)+"\n")
-            usesFeatures[key] = False
-        # if
-    # for
-    
-    if unknownFeatures:
-        print("\nUnknown Features Found:")
-        cnt = 1
-        for i in unknownFeatures:
-            print("["+str(cnt)+"] "+i)
-            cnt = cnt + 1 # increment count
-        # for
-    # if
-
-    return usesFeatures
-# function
-
-def manifestToTxt(apk):
-    name = apk[:-4]
-    manifest_path = "./" + name + "/AndroidManifest.xml"
-    output_path = "OUTPUT/" + name + "_AndroidManifest.txt"
-    #manifestInput = scanManifest(manifest_path)
-    
-    try:
-        manifest = scanManifest(manifest_path)
-        fOutput = open(output_path, "w")
-        
-        try:
-            for i in manifest:
-                fOutput.write(i)
-        finally:
-            fOutput.close()
-        # try
-
-    except IOError as e:
-        print("I/O error({0}): {1}".format(e.errno, e.strerror))
-        exit()
-    # try
-# function
-
-# Log detected Android permissions
-def logPermissions(apk):
-    APK_NAME = apk[:-4]
-    PERMISSION_LOG_NAME = "OUTPUT/" + APK_NAME + "_DetectedPermissions.txt"	
-    androidManifest = scanManifest("./" + APK_NAME + "/AndroidManifest.xml")
-    PERMISSION_HEAD_FORMAT = "android.permission."
-    
-    detectedPermissions = getPermissions(androidManifest)
-    NUM_PERMISSIONS = str(len(detectedPermissions))
-    #print("Total permissions: " + NUM_DETECTED_PERMISSIONS)
-    if(NUM_PERMISSIONS == 0 ):
-        print("No permissions detected [!!]")
-        return
-    # if
-    
-    standardPerms = list()
-    unknownPerms = list()
-    
-    for index in detectedPermissions:
-        if PERMISSION_HEAD_FORMAT in index:
-            standardPerms.append(index)
-        else:
-            unknownPerms.append(index)
-        # if
-    # for
-    
-    standardPerms.sort()
-    unknownPerms.sort()
-    
-    log = open(PERMISSION_LOG_NAME, "w")
-    try:
-        log.write("APK NAME: " + APK_NAME +"\n")
-        log.write("Total permissions: " + NUM_PERMISSIONS + "\n\n")
-        
-        # standard format permissions
-        NUM_STANDARD_PERMISSIONS = len(standardPerms)
-        print("\nStandard permissions: "+str(NUM_STANDARD_PERMISSIONS))
-        log.write("Standard permissions: " + str(NUM_STANDARD_PERMISSIONS) + "\n")
-        log.write("----------------------------\n")
-        for index in standardPerms:
-            log.write(index + "\n")
-        # for
-        
-        # unknown permissions
-        NUM_UNKNOWN_PERMISSIONS = len(unknownPerms)
-        if NUM_UNKNOWN_PERMISSIONS != 0:
-            print("\nUnknown permissions: " + str(NUM_UNKNOWN_PERMISSIONS))
-            log.write("\nUnknown permissions: " + str(NUM_UNKNOWN_PERMISSIONS) + "\n")
-            log.write("----------------------------\n")
-            for index in unknownPerms:
-                log.write(index + "\n")
-            # for
-        # if
-    except IOError:
-        print("IO ERROR")
-    # try
-# function
-
-# Analyze Android manifest
-def analyzeAndroidManifest(apk):
-
-    APK_NAME = apk[:-4]
-    F_LOG_NAME = "OUTPUT/"+APK_NAME+"_AnalysisLog.txt"
-    DATE = datetime.datetime.now().strftime("%A %B %d, %Y %I:%M %p")
-    manifest = scanManifest("./" + APK_NAME + "/AndroidManifest.xml")
-
-    compileSdkVersion, compileSdkVersionCodename, apkPackagename, platformBuildVersionCode, platformBuildVersionName = getAPKMetaData(manifest)
-    standardPermissions, customPermissions = getManifestPermissions(manifest)
-    num_permissions = str(len(standardPermissions) +  len(customPermissions))
-
-    log = open(F_LOG_NAME, "w")
-    log.write("File: "+apk+"\n")
-    log.write("Date: " + DATE + "\n")
-    log.write("Package: " + apkPackagename + "\n")
-    log.write("Compiled SDK Version: " + compileSdkVersion + "\n")
-    log.write("Compiled SDK Version Codename: " + compileSdkVersionCodename + "\n")
-    log.write("Platform Build Version Code: " + platformBuildVersionCode + "\n")
-    log.write("Platform Build Version Name: " + platformBuildVersionName + "\n")
-    log.write("Total Permissions: " + num_permissions+"\n")
-    
-    # Standard Permissions
-    log.write("\nStandard Permissions: " + str(len(standardPermissions)) + "\n")
-    for i in standardPermissions:
-        log.write(i + "\n")
-    # for
-    log.write("\n")
-    
-    # Custom Permissions
-    log.write("Unknown Permissions: " + str(len(customPermissions)) + "\n")
-    for i in customPermissions:
-        log.write(i + "\n")
-    # for
-    log.write("\n")
-
-    # Log detected uses-features
-    uses_features = getManifestFeaturesUsed(manifest)
-    if uses_features:
-        log.write("USES-FEATURES\n")
-        for key,value in uses_features.items():
-            log.write(key+" "+str(value)+"\n")
-        # for
-        log.write("\n")
-    # if
-    
-    # Log detected APK services
-    services = getManifestServices(manifest)
-    log.write("Services\n")
-    
-    for i in services:
-        log.write(i + "\n")
-    # for
-
-    log.write("\n")
-# function
-
-# Load Mitre data
-def loadMitreData():
-    print("loadMitreData()") # DEBUGGING
-    
-    columns = set() # empty set
-
-    sql = "select distinct description, attack_id"
-    sql = sql + " from mitre_detection"
-    sql = sql + " order by description, attack_id"
-
-    results = pd.read_sql_query(sql, database.connection)
-    records = pd.DataFrame(results)
-
-    for index, row in records.iterrows():
-        col = row[0] + " " + row[1]
-        columns.add(col)
-    # for
-
-    return sorted(columns)
-# function
-
-# Mitre data dictionary
-def getMitreDict():
-    print("getMitreDict()") # DEBUGGING
-
-    dict_mitre = dict()  
-    for i in loadMitreData():
-        dict_mitre[i] = list()
-    # for
-
-    print("\nLoading Mitre Data") # newline
-    print("---------------") # newline
-    for k in dict_mitre:
-        print(k)
-    # for
-    print() # newline
-
-    sql = "select description, ATTACK_ID, trojan_id"
-    sql = sql + " from mitre_detection"
-    sql = sql + " order by trojan_id, description, ATTACK_ID"
-
-    results = pd.read_sql_query(sql, database.connection)
-    df_samples = pd.DataFrame(results)
-
-    for index, row in df_samples.iterrows():
-        key = row[0] + " " + row[1]
-        #print(key)
-        items = dict_mitre[key]
-        items.append(row[2])
-        items.sort()
-        dict_mitre[key] = items
-    # for
-
-    return dict_mitre
-# function
-
-# Get mitre matrix columns
-def getMitreMatrixColumns():
-    print("getMitreMatrixColumns()") # DEBUGGING
-
-    sql = "SHOW COLUMNS FROM mitre_matrix"
-    results = pd.read_sql_query(sql, database.connection)
-    
-    cols = results.loc[:, 'Field']  
-    cols = cols.drop(cols.index[0])
-
-    return cols.tolist()
-# function
-
-# Get sample ids
-def getSampleIds():
-    print("getSampleIds()") # DEBUGGING
-
-    sql = "select DISTINCT trojan_id from mitre_detection"
-    results = pd.read_sql_query(sql, database.connection)
-    records = pd.DataFrame(results)
-    
-    temp = list()
-    for i in records.loc[:, 'trojan_id']:
-        temp.append(i)
-    # for
-    temp.sort()
-
-    return temp
-# function
-
-# Add ids mitra matrix
-def addIdsMitreMatrix():
-    print("addIdsMitreMatrix()") # DEBUGGING
-
-    samples = getSampleIds()
-
-    for index in samples:
-        sql = "select * from mitre_matrix where trojan_id = " + str(index)
-        results = pd.read_sql_query(sql, database.connection)
-        
-        if results.empty:
-            sql = "insert into mitre_matrix (trojan_id) value (%s)"
-            database.cursor.execute(sql, (str(index),))
-            database.connection.commit()
-
-            print("Added sample id: " + str(index))
-        # if
-    # for
-
-    print() # newline
-# function
-
-# Populate mitre matrix table
-def populateMitreMatrixTable():
-    addIdsMitreMatrix()
-
-    columns = getMitreMatrixColumns()
-    dict_mitreMatrix = getMitreDict()
-    
-    # iterator to find any missing columns 
-    for index in dict_mitreMatrix:
-        
-        # check if column does not exist in the table
-        if index not in columns:
-            print(index + " Does not exist")
-            sql = "ALTER TABLE `mitre_matrix` ADD `"+ index +"` varchar(1) null"
-            database.cursor.execute(sql)
-            database.connection.commit()
-        # if
-    # for
-    print() # newline
-
-    for key in dict_mitreMatrix:
-        print(key)
-        values = dict_mitreMatrix[key]
-        
-        for i in values:
-            sql = "UPDATE mitre_matrix SET `" + key + "` = 'X' WHERE trojan_id = " + str(i)
-            database.cursor.execute(sql)
-            database.connection.commit()
-        # for
-    # for
-# function
-
-# Generate LatTeX Charts
-def generateLaTexCharts(family):
-    sql = "SELECT ID, "
-    sql = sql + "Kaspersky_Label Kaspersky, "
-    sql = sql + "HybridAnalysis_Label HybridAnalysis, "
-    sql = sql + "VirusTotal_DetectionRatio, "
-    sql = sql + "HybridAnalysis_AV_Detection "
-    sql = sql + "FROM malware_samples "
-    sql = sql + "WHERE family = '" + family + "' order by id"
-
-    database.cursor.execute(sql)
-    results = database.cursor.fetchall()
-    displayLaTeXCharts(results, "\nDataset Labels\n")
-
-    sql = "SELECT y.id, y.security_score score, y.grade, "
-    sql = sql + "y.trackers_detections tracker, y.high_risks, y.medium_risks "
-    sql = sql + "FROM malware_samples x JOIN mobfs_analysis y ON y.id = x.id "
-    sql = sql + "where x.family = '" + family + "' order by x.id"
-
-    database.cursor.execute(sql)
-    results = database.cursor.fetchall()
-    displayLaTeXCharts(results, "\nMobSF Security Score\n")
-
-    sql = "select x.id, "
-    sql = sql + "x.size, "
-    sql = sql + "x.Target_SDK, x.Minimum_SDK,"
-    sql = sql + "y.activities, "
-    sql = sql + "y.services, "
-    sql = sql + "y.receivers, "
-    sql = sql + "y.providers "
-    sql = sql + "from malware_samples x "
-    sql = sql + "join mobfs_analysis y "
-    sql = sql + "on y.id = x.id "
-    sql = sql + "where x.family = '" + family + "' "
-    sql = sql + "order by x.id "
-
-    database.cursor.execute(sql)
-    results = database.cursor.fetchall()
-    displayLaTeXCharts(results, "\nStatic Analysis\n")
-# function
-
-# Display LaTeX Charts
-def displayLaTeXCharts(results, chartTitle):
-    print(chartTitle)
-    for row in results:
-        buff = ""
-        cnt = 0
-        for element in row:
-            if cnt == (len(row) - 1):
-                buff = buff + str(element) + " \\\\"
-            else:
-                buff = buff + str(element) + " & "
-            # if
-            cnt = cnt + 1 # increment
-        # for
-        print(buff)
-    # for
-# function
