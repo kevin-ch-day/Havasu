@@ -99,7 +99,7 @@ def createPermissionRecord(trojan_id):
 
 # Read mitre data
 def readMitreData():
-    FILE_PATH = "INPUT\\MITRE-INPUT.xlsx"
+    FILE_PATH = "Input\\MITRE-INPUT.xlsx"
     wb = xl.load_workbook(FILE_PATH)
 
     for i in wb.sheetnames:
@@ -135,7 +135,7 @@ def readMitreData():
 
 # read detected permission from text file
 def readDetectedPermissions():
-    fPERMISSION_INPUT = open("INPUT\\APK_PERMISSIONS.txt", "r")
+    fPERMISSION_INPUT = open("Input\\APK_PERMISSIONS.txt", "r")
     buff = list()
     for p in fPERMISSION_INPUT:
         buff.append(p.strip())
@@ -180,7 +180,7 @@ def classifyPermissions(trojan, permissions):
     # for
 
     if unknownPermissionsFound:
-        fUnknownPermissions = open("OUTPUT\\"+str(trojan)+"-UnknownPerms.txt", "w")
+        fUnknownPermissions = open("Output\\"+str(trojan)+"-UnknownPerms.txt", "w")
         try:
             for i in unknownPermissions:
                 #print(index) # DEBUGGING
@@ -294,7 +294,7 @@ def recordNonStandardPermissions(trojan, unknownPermissions):
 
 # Generate mitre matrix
 def generateMitreMatrix(sample_set):
-    FILE_PATH = 'OUTPUT\\Mitre-Matrix.xlsx'
+    FILE_PATH = 'Output\\Mitre-Matrix.xlsx'
     
     sql = "select * from mitre_matrix "
     sql = sql + " where trojan_id in " + sample_set
@@ -553,7 +553,7 @@ def getManifestFeaturesUsed(manifest):
 def manifestToTxt(apk):
     name = apk[:-4]
     ANDROID_MANIFEST_PATH = "./" + apk + "/AndroidManifest.xml"
-    OUTPUT_PATH = "OUTPUT/" + name + "_AndroidManifest.txt"
+    OUTPUT_PATH = "Output/" + name + "_AndroidManifest.txt"
     
     try:
         manifest = open(ANDROID_MANIFEST_PATH, "r")
@@ -577,7 +577,7 @@ def manifestToTxt(apk):
 def logPermissions(apk):
     APK_NAME = apk[:-4]
     ANDROID_MANIFEST_PATH = "./" + APK_NAME + "/AndroidManifest.xml"
-    PERMISSION_LOG_PATH = "OUTPUT/" + APK_NAME + "_DetectedPermissions.txt"	
+    PERMISSION_LOG_PATH = "Output/" + APK_NAME + "_DetectedPermissions.txt"	
 
     # Scan AndroidManifest.xml
     try:
@@ -644,7 +644,7 @@ def logPermissions(apk):
 def analyzeAndroidManifest(apk):
     APK_NAME = apk[:-4]
 
-    ANALYIS_LOG_PATH = "OUTPUT/" + APK_NAME + "_AnalysisLog.txt"
+    ANALYIS_LOG_PATH = "Output/" + APK_NAME + "_AnalysisLog.txt"
     DATE = datetime.datetime.now().strftime("%A %B %d, %Y %I:%M %p")
     ANDROID_MANIFEST_PATH = "./" + APK_NAME + "/AndroidManifest.xml"
     
@@ -897,21 +897,21 @@ def displayLaTeXCharts(results, chartTitle):
 
 # Generate sample data by ids to .xlsx file
 def outputMalwareRecordsById(ids):
-    FILE_PATH = "OUTPUT\\Output-Excel.xlsx"
+    FILE_PATH = "Output\\Output-Excel.xlsx"
     sql = "SELECT * FROM mobfs_analysis WHERE id in " + ids
     df = pd.read_sql_query(sql, database.cursor)
     df.to_excel(FILE_PATH)
 
 # Generate sample data by family to .xlsx file
 def outputMalwareRecordsByFamily(database, family):
-    FILE_PATH = "OUTPUT\\Output-Excel.xlsx"
+    FILE_PATH = "Output\\Output-Excel.xlsx"
     sql = "SELECT * FROM malware_samples WHERE family = '" + family + "'"        
     df = pd.read_sql_query(sql, database.cursor)
     df.to_excel(FILE_PATH)
 
 # Standard Permissions
 def outputStandardPermissions(sample_set):
-    EXCEL_FILE = 'OUTPUT\\Android-Permissions.xlsx'
+    EXCEL_FILE = 'Output\\Android-Permissions.xlsx'
     
     sql = "select * from detected_standard_permissions "
     sql = sql + " where id in " + str(sample_set)
@@ -937,7 +937,7 @@ def outputStandardPermissions(sample_set):
 
 # Unknown Permissions
 def outputUnknownPermissions(sample_set):
-    FILE_PATH = 'OUTPUT\\Unknown-Permissions.xlsx'
+    FILE_PATH = 'Output\\Unknown-Permissions.xlsx'
 
     sql = "select * from detected_unknown_permissions "
     sql = sql + " where id in " + sample_set
@@ -963,7 +963,7 @@ def outputUnknownPermissions(sample_set):
 
 # Normal Permissions
 def outputNormalPermissions(sample_set):
-    EXCEL_FILE = 'OUTPUT\\Normal-Permissions.xlsx'
+    EXCEL_FILE = 'Output\\Normal-Permissions.xlsx'
 
     sql = "select name from android_permissions where Protection_level = 'Normal' order by name"
     database.cursor.execute(sql)
