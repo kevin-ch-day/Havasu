@@ -1,3 +1,3 @@
 @echo off
 
-python main.py
+python -W ignore main.py

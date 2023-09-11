@@ -1,23 +1,13 @@
-import Server.database as database
 import pandas as pd
 import openpyxl as xl
-import mysql.connector
+import database as db
 
-# start database connection
-def startDB():
-    database.start()
-
-# end database connection
-def endDB():
-    database.end()
-
-# Check supplied hash against database
+# Check supplied hash against database records 
 def checkHash(hash):
     hashFound = False
     
     sql = "select * from malware_samples where md5 = '" + hash + "'"
-    database.cursor.execute(sql)
-    results = database.cursor.fetchall()
+    results = db.runQuery(sql)
     if results:
         hashFound = True
         print("MD5 hash match found")
@@ -26,8 +16,7 @@ def checkHash(hash):
     # if
 
     sql = "select * from malware_samples where sha1 = '" + hash + "'"
-    database.cursor.execute(sql)
-    results = database.cursor.fetchall()
+    results = db.runQuery(sql)
     if results:
         hashFound = True
         print("SHA1 hash match found")
@@ -36,8 +25,7 @@ def checkHash(hash):
     # if
 
     sql = "select * from malware_samples where sha256 = '" + hash + "'"
-    database.cursor.execute(sql)
-    results = database.cursor.fetchall()
+    results = db.runQuery(sql)
     if results:
         hashFound = True
         print("SHA256 hash match found")
@@ -60,8 +48,7 @@ def displayMalwareRecord(record):
 # check permission records
 def checkPermissionRecords(id):
     sql = "SELECT * FROM detected_standard_permissions where id = '" + id + "'"
-    database.cursor.execute(sql)
-    results = database.cursor.fetchall()
+    results = db.runQuery(sql)
     if not results:
         return None
     # if
@@ -317,8 +304,7 @@ def generateLaTexCharts(family):
     sql = sql + "FROM malware_samples "
     sql = sql + "WHERE family = '" + family + "' order by id"
 
-    database.cursor.execute(sql)
-    results = database.cursor.fetchall()
+    results = db.runQuery(sql)
     displayLaTeXCharts(results, "\nDataset Labels\n")
 
     sql = "SELECT y.id, y.security_score score, y.grade, "
@@ -326,8 +312,7 @@ def generateLaTexCharts(family):
     sql = sql + "FROM malware_samples x JOIN mobfs_analysis y ON y.id = x.id "
     sql = sql + "where x.family = '" + family + "' order by x.id"
 
-    database.cursor.execute(sql)
-    results = database.cursor.fetchall()
+    results = db.runQuery(sql)
     displayLaTeXCharts(results, "\nMobSF Security Score\n")
 
     sql = "select x.id, "
@@ -343,8 +328,7 @@ def generateLaTexCharts(family):
     sql = sql + "where x.family = '" + family + "' "
     sql = sql + "order by x.id "
 
-    database.cursor.execute(sql)
-    results = database.cursor.fetchall()
+    results = db.runQuery(sql)
     displayLaTeXCharts(results, "\nStatic Analysis\n")
 
 # Display LaTeX Charts
@@ -434,8 +418,7 @@ def outputNormalPermissions(sample_set):
     EXCEL_FILE = 'ouput\\Normal-Permissions.xlsx'
 
     sql = "select name from android_permissions where Protection_level = 'Normal' order by name"
-    database.cursor.execute(sql)
-    results = database.cursor.fetchall()
+    results = db.runQuery(sql)
     normalPermissionsColumns = "'"
     buff = list()
     cnt = 0
@@ -457,8 +440,7 @@ def outputNormalPermissions(sample_set):
 
     ## ADD COLUMN CHECKING
     sql = "SHOW COLUMNS FROM detected_standard_permissions"
-    database.cursor.execute(sql)
-    results = database.cursor.fetchall()
+    results = db.runQuery(sql)
     detectedPermissions = list()
     for i in results:
         if(i[0] != "ID"):
@@ -545,8 +527,7 @@ def recordNonStandardPermissions(trojan, unknownPermissions):
     addedCols = updatedCols = 0
 
     sql = "show columns from detected_unknown_permissions"
-    database.cursor.execute(sql)
-    results = database.cursor.fetchall()
+    results = db.runQuery(sql)
     if not results:
         print("[!!] - No columns retrieved from: unknown_permissions")
         exit()
@@ -629,4 +610,3 @@ def generateMitreMatrix(sample_set):
         # for
     # for
     df_beta.to_excel(FILE_PATH)
-

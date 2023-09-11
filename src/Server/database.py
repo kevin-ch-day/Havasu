@@ -1,10 +1,9 @@
-# database.py
 import mysql.connector
 
 connection = None
 cursor = None
 
-def start():
+def createConnection():
     """ Connect to MySQL database """
     global connection
     global cursor
@@ -24,20 +23,20 @@ def start():
             port = PORT)
 
         if not connection.is_connected():
-            print("Cannot connected to data.\n")
+            print("Error: cannot connected to database.\n")
             exit()
         # if
 
         cursor = connection.cursor()
 
     except Exception as exp:
-        print("[!!]- Error start database connection")
+        print("[!!]- Error creating database connection")
         print(str(exp))
     # try
 # function
 
-def close():
-    """ disconnect to MySQL database """
+def closeConnection():
+    """ Disconnect from MySQL database """
     global connection
 
     try:
@@ -45,5 +44,26 @@ def close():
     except Exception as exp:
         print("[!!] - Error ending database connection")
         print(str(exp))
+    # try
+# function
+
+def runQuery(sql):
+    global cursor
+
+    try:
+        createConnection()
+        cursor.execute(sql)
+        results = cursor.fetchall()
+        if not results:
+            return None
+        else:
+            return results
+    
+    except mysql.connector.Error as err:
+        print(err)
+        return None
+    
+    finally:
+        closeConnection()
     # try
 # function
