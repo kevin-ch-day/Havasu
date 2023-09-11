@@ -6,38 +6,35 @@ import database as db
 
 # Check supplied hash against database records 
 def checkHash(hash):
-    hashFound = False
     
+    # MD5
     sql = "select * from malware_samples where md5 = '" + hash + "'"
     results = db.queryData(sql)
     if results:
-        hashFound = True
         print("MD5 hash match found")
-        #self.displayMalwareRecord(results[0])
+        displayMalwareRecord(results)
         return
     # if
 
+    # SHA1
     sql = "select * from malware_samples where sha1 = '" + hash + "'"
     results = db.queryData(sql)
     if results:
-        hashFound = True
         print("SHA1 hash match found")
         displayMalwareRecord(results)
         return
     # if
 
+    # SHA256
     sql = "select * from malware_samples where sha256 = '" + hash + "'"
     results = db.queryData(sql)
     if results:
-        hashFound = True
         print("SHA256 hash match found")
         displayMalwareRecord(results)
         return
     # if
 
-    if not hashFound:
-        print("No hash record found.")
-    # if
+    print("No hash record found.")
 
 # Display malware record
 def displayMalwareRecord(record):
@@ -242,8 +239,6 @@ def addIdsMitreMatrix():
             sql = "insert into mitre_matrix (trojan_id) value (%s)"
             db.executeSQL(sql, (str(index),))
             print("Added sample id: " + str(index))
-        # if
-    # for
     print() # newline
 
 # Populate mitre matrix table
@@ -261,8 +256,6 @@ def populateMitreMatrixTable():
             print(index + " Does not exist")
             sql = "ALTER TABLE `mitre_matrix` ADD `"+ index +"` varchar(1) null"
             db.executeSQL(sql)
-        # if
-    # for
     print() # newline
 
     for key in dict_mitreMatrix:
@@ -271,8 +264,6 @@ def populateMitreMatrixTable():
         for index in values:
             sql = "UPDATE mitre_matrix SET `" + key + "` = 'X' WHERE trojan_id = " + str(index)
             db.executeSQL(sql)
-        # for
-    # for
 
 # Generate LatTeX Charts
 def generateLaTexCharts(family):
@@ -361,10 +352,6 @@ def outputStandardPermissions(sample_set):
             if cell is not None:
                 df_beta[column] = df_alpha[column]
                 break
-            # if
-        # for
-    # for
-
     df_beta.to_excel(EXCEL_FILE_PATH)
 
 # Unknown Permissions
@@ -386,9 +373,6 @@ def outputUnknownPermissions(sample_set):
             if cell is not None:
                 df_beta[column] = df_alpha[column]
                 break
-            # if
-        # for
-    # for
     df_beta.to_excel(EXCEL_FILE_PATH)
 
 # Normal Permissions
@@ -437,7 +421,6 @@ def outputNormalPermissions(sample_set):
         print("Missing Permissions: ")
         for i in missingPermissions:
             print(i)
-        # for
         exit()
     # if
 
@@ -458,9 +441,6 @@ def outputNormalPermissions(sample_set):
                 print(column)
                 df_beta[column] = df_alpha[column]
                 break
-            # if
-        # for
-    # for
     df_beta.to_excel(EXCEL_FILE_PATH)
 
 # Classify detected permissions
@@ -486,7 +466,6 @@ def classifyPermissions(trojan, permissions):
             for i in unknownPermissions:
                 #print(index) # DEBUGGING
                 fUnknownPermissions.write(i + "\n")
-            # for
         except IOError as e:
             print("I/O error({0}): {1}".format(e.errno, e.strerror))
             exit()
@@ -508,15 +487,12 @@ def recordNonStandardPermissions(trojan, unknownPermissions):
     if not results:
         print("[!!] - No columns retrieved from: unknown_permissions")
         exit()
-    # if
 
     for i in results:
         if 'id' == i[0]:
             pass
         else:
             dbCols.append(i[0])
-        # if
-    # for
     #print(unknownPermissions) # DEBUGGING
 
     # Create record for APK in table
@@ -527,12 +503,9 @@ def recordNonStandardPermissions(trojan, unknownPermissions):
     print("\n** Detected unknown permissions columns **")
     for index in unknownPermissions:
         if index not in dbCols:
-
-            # add new column to table
             print("Adding new column to database: ", index)
             sql = "ALTER TABLE detected_unknown_permissions add " + index + " VARCHAR(1) NULL DEFAULT NULL"
             db.executeSQL(sql)
-        # if
 
         # update column with permission record
         sql = "update detected_unknown_permissions set " + index + " = 'X' where id = " + str(trojan)
@@ -565,7 +538,4 @@ def generateMitreMatrix(sample_set):
             if cell is not None:
                 df_beta[index] = df_alpha[index]
                 break
-            # if
-        # for
-    # for
     df_beta.to_excel(EXCEL_FILE_PATH)
