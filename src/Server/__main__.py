@@ -98,12 +98,13 @@ def readMitreData():
 
 # read detected permission from text file
 def readDetectedPermissions():
-    fPERMISSION_INPUT = open("Input\\APK_PERMISSIONS.txt", "r")
-    buff = list()
-    for p in fPERMISSION_INPUT:
-        buff.append(p.strip())
+    PERMISSIONS_INPUT_PATH = "Input\\APK_PERMISSIONS.txt"
+    fPermissions = open(PERMISSIONS_INPUT_PATH, "r")
+    permissions = list()
+    for index in fPermissions:
+        permissions.append(index.strip())
     # for
-    return buff
+    return permissions
 
 # Standard Android Permissions
 def getStandardAndroidPermissionList():
@@ -151,7 +152,6 @@ def recordAndroidPermissions(trojan, permissions):
     print(str(updatedColumns) + " columns updated.")
     recordNonStandardPermissions(trojan, unknownPermissions)
 
-
 # Load Mitre data
 def loadMitreData():
     print("loadMitreData()") # DEBUGGING
@@ -165,8 +165,8 @@ def loadMitreData():
     df = db.pandasDataFrame(sql)
 
     for index, row in df.iterrows():
-        col = row[0] + " " + row[1]
-        columns.add(col)
+        data = row[0] + " " + row[1]
+        columns.add(data)
     # for
 
     return sorted(columns)
@@ -223,24 +223,21 @@ def getSampleIds():
     sql = "select DISTINCT trojan_id from mitre_detection"
     df = db.pandasDataFrame(sql)
     
-    temp = list()
+    sampleIds = list()
     for i in df.loc[:, 'trojan_id']:
-        temp.append(i)
+        sampleIds.append(i)
     # for
-    temp.sort()
-
-    return temp
+    sampleIds.sort()
+    return sampleIds
 
 # Add ids mitra matrix
 def addIdsMitreMatrix():
     print("addIdsMitreMatrix()") # DEBUGGING
 
     samples = getSampleIds()
-
     for index in samples:
         sql = "select * from mitre_matrix where trojan_id = " + str(index)
         df = db.pandasDataFrame(sql)
-        
         if df.empty:
             sql = "insert into mitre_matrix (trojan_id) value (%s)"
             db.executeSQL(sql, (str(index),))
@@ -271,9 +268,8 @@ def populateMitreMatrixTable():
     for key in dict_mitreMatrix:
         print(key)
         values = dict_mitreMatrix[key]
-        
-        for i in values:
-            sql = "UPDATE mitre_matrix SET `" + key + "` = 'X' WHERE trojan_id = " + str(i)
+        for index in values:
+            sql = "UPDATE mitre_matrix SET `" + key + "` = 'X' WHERE trojan_id = " + str(index)
             db.executeSQL(sql)
         # for
     # for
@@ -348,14 +344,13 @@ def outputMalwareRecordsByFamily(database, family):
 
 # Standard Permissions
 def outputStandardPermissions(sample_set):
-    EXCEL_FILE = 'Output\\Android-Permissions.xlsx'
+    EXCEL_FILE_PATH = 'Output\\Android-Permissions.xlsx'
     
     sql = "select * from detected_standard_permissions "
     sql = sql + " where id in " + str(sample_set)
     sql = sql + " order by id"
 
-    sql_query = pd.read_sql_query(sql, database.connection)
-    df_alpha = pd.DataFrame(sql_query)
+    df_alpha = db.getDataFrame(sql)
     df_beta = pd.DataFrame() # create empty data frame
 
     df_beta['ID'] = df_alpha['ID']
@@ -370,18 +365,17 @@ def outputStandardPermissions(sample_set):
         # for
     # for
 
-    df_beta.to_excel(EXCEL_FILE)
+    df_beta.to_excel(EXCEL_FILE_PATH)
 
 # Unknown Permissions
 def outputUnknownPermissions(sample_set):
-    FILE_PATH = 'Output\\Unknown-Permissions.xlsx'
+    EXCEL_FILE_PATH = 'Output\\Unknown-Permissions.xlsx'
 
     sql = "select * from detected_unknown_permissions "
     sql = sql + " where id in " + sample_set
     sql = sql + " order by id"
 
-    sql_query = pd.read_sql_query(sql, database.connection)
-    df_alpha = pd.DataFrame(sql_query)
+    df_alpha = df_alpha = db.getDataFrame(sql)
     df_beta = pd.DataFrame()
 
     df_beta['ID'] = df_alpha['ID']
@@ -395,15 +389,15 @@ def outputUnknownPermissions(sample_set):
             # if
         # for
     # for
-    df_beta.to_excel(FILE_PATH)
+    df_beta.to_excel(EXCEL_FILE_PATH)
 
 # Normal Permissions
 def outputNormalPermissions(sample_set):
-    EXCEL_FILE = 'ouput\\Normal-Permissions.xlsx'
+    EXCEL_FILE_PATH = 'Ouput\\Normal-Permissions.xlsx'
 
     sql = "select name from android_permissions where Protection_level = 'Normal' order by name"
     results = db.runQuery(sql)
-    normalPermissionsColumns = "'"
+    normalPermissionsColumns = "'" # start sql columns
     buff = list()
     cnt = 0
 
@@ -411,10 +405,10 @@ def outputNormalPermissions(sample_set):
         if(x[0] == "ID"):
             print(x[0])
         elif(cnt == (len(results)-1)):
-            normalPermissionsColumns = normalPermissionsColumns + x[0] + "'"
+            normalPermissionsColumns = normalPermissionsColumns + x[0] + "'" # end columns
             #print(cnt, x[0])
         else:
-            normalPermissionsColumns = "'" + normalPermissionsColumns + x[0] + "', "
+            normalPermissionsColumns = "'" + normalPermissionsColumns + x[0] + "', " # append column
             #print(cnt, x[0])
         # if
 
@@ -452,8 +446,7 @@ def outputNormalPermissions(sample_set):
     sql = sql + " where ID in " + sample_set
     sql = sql + " order by ID"
 
-    sql_query = pd.read_sql_query(sql, database.connection)
-    df_alpha = pd.DataFrame(sql_query)
+    df_alpha = db.getDataFrame(sql)
     df_beta = pd.DataFrame()
 
     df_beta['ID'] = df_alpha['ID']
@@ -468,7 +461,7 @@ def outputNormalPermissions(sample_set):
             # if
         # for
     # for
-    df_beta.to_excel(EXCEL_FILE)
+    df_beta.to_excel(EXCEL_FILE_PATH)
 
 # Classify detected permissions
 def classifyPermissions(trojan, permissions):
@@ -479,7 +472,7 @@ def classifyPermissions(trojan, permissions):
     for index in permissions:
         # check if permission matches the standard permission formatted
         if "android.permission." in index:
-            print(index) # DEBUGGING
+            #print(index) # DEBUGGING
             standardFormatPerms.append(index)
         else:
             unknownPermissions.append(index)
@@ -535,13 +528,13 @@ def recordNonStandardPermissions(trojan, unknownPermissions):
     for index in unknownPermissions:
         if index not in dbCols:
 
-            # add new columns to table
-            print("Adding new column: ", index) # DEBUGGING
+            # add new column to table
+            print("Adding new column to database: ", index)
             sql = "ALTER TABLE detected_unknown_permissions add " + index + " VARCHAR(1) NULL DEFAULT NULL"
             db.executeSQL(sql)
         # if
 
-        # update column within permission record
+        # update column with permission record
         sql = "update detected_unknown_permissions set " + index + " = 'X' where id = " + str(trojan)
         db.executeSQL(sql)
     # for
@@ -551,28 +544,28 @@ def recordNonStandardPermissions(trojan, unknownPermissions):
 
 # Generate mitre matrix
 def generateMitreMatrix(sample_set):
-    FILE_PATH = 'Output\\Mitre-Matrix.xlsx'
+    EXCEL_FILE_PATH = 'Output\\Mitre-Matrix.xlsx'
     
     sql = "select * from mitre_matrix "
     sql = sql + " where trojan_id in " + sample_set
     sql = sql + " order by trojan_id"
 
-    df_raw = pd.read_sql_query(sql, database.connection)
+    df_raw = db.pandasReadSQL(sql)
 
-    cols = df_raw.columns.tolist()
-    cols.sort()
-    cols.remove('trojan_id')
+    columns = df_raw.columns.tolist()
+    columns.sort()
+    columns.remove('trojan_id')
 
     df_beta = pd.DataFrame()
     df_beta['trojan_id'] = df_raw['trojan_id']
     df_alpha = df_raw.drop(columns=['trojan_id'])
 
-    for column in cols:
-        for cell in df_alpha[column]:
+    for index in columns:
+        for cell in df_alpha[index]:
             if cell is not None:
-                df_beta[column] = df_alpha[column]
-            break
+                df_beta[index] = df_alpha[index]
+                break
             # if
         # for
     # for
-    df_beta.to_excel(FILE_PATH)
+    df_beta.to_excel(EXCEL_FILE_PATH)
