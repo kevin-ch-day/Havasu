@@ -1,11 +1,13 @@
 # database.py
 
-import mysql.connector
+import mysql.connector as mysql
 import pandas as pd
 
+# GLOBALS
 connection = None
 cursor = None
 
+# create database connection
 def createConnection():
     """ Connect to MySQL database """
     global connection
@@ -18,7 +20,7 @@ def createConnection():
     PORT = 3306
 
     try:
-        connection = mysql.connector.connect(
+        connection = mysql.connect(
             host = SERVER,
             user = USERNAME,
             password = PASSWORD,
@@ -38,6 +40,7 @@ def createConnection():
     # try
 # function
 
+# close database connection
 def closeConnection():
     """ Disconnect from MySQL database """
     global connection
@@ -50,6 +53,7 @@ def closeConnection():
     # try
 # function
 
+# query sql statement
 def queryData(sql):
     global cursor
 
@@ -62,7 +66,7 @@ def queryData(sql):
         else:
             return results
     
-    except mysql.connector.Error as err:
+    except mysql.Error as err:
         print(err)
         return None
     
@@ -71,6 +75,7 @@ def queryData(sql):
     # try
 # function
 
+# execute SQL statement
 def executeSQL(sql, values = None):
     global cursor
     global connection
@@ -82,7 +87,7 @@ def executeSQL(sql, values = None):
         else:
             cursor.execute(sql, values)
         # if
-    except mysql.connector.Error as err:
+    except mysql.Error as err:
         print("[!!] MySQL Error: {}".format(err))
         return None
     
@@ -92,7 +97,7 @@ def executeSQL(sql, values = None):
     # try
 # function
 
-def pandasDataFrame(sql):
+def getDataFrame(sql):
     global cursor
     global connection
 
@@ -107,7 +112,31 @@ def pandasDataFrame(sql):
         else:
             return records
     
-    except mysql.connector.Error as err:
+    except mysql.Error as err:
+        print(err)
+        return None
+    
+    finally:
+        closeConnection()
+    # try
+# function
+
+# Pandas read SQL query
+def pandasReadSQL(sql):
+    global cursor
+    global connection
+
+    try:
+        createConnection()
+
+        results = pd.read_sql_query(sql, connection)
+
+        if not results:
+            return None
+        else:
+            return results
+    
+    except mysql.Error as err:
         print(err)
         return None
     
