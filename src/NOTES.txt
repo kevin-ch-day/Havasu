@@ -1,9 +1,0 @@
-Family Sample IDS:
-
-ANUBIS = "(55, 80, 81, 83, 103, 104, 105)"
-FLUBOT = "(8, 9, 10, 11, 21, 22, 29, 30, 31, 32, 33, 34, 35, 36, 37)"
-SOVA = "(44, 45, 114, 115)"
-BRATA = "(6, 7, 18, 19, 20, 117, 118)"
-VULTAUR = "(1, )"
-
-Android Permissions: https://developer.android.com/reference/android/Manifest.permission
