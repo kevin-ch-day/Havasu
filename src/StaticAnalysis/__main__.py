@@ -5,12 +5,12 @@ import datetime
 import zipfile
 
 # decompile APK using Apktool
-def apkTool(apk):
-    os.system("apktool d " + apk)
+def os_apkTool(apk_file):
+    os.system("apktool d " + apk_file)
 
 # convert APK to JAR using dex2jar
-def dex2jar(apk):
-    os.system("d2j-dex2jar " + apk)
+def os_dex2jar(apk_file):
+    os.system("d2j-dex2jar " + apk_file)
 
 # Read AndroidManifest.xml permissions
 def getManifestPermissions(androidManifest):

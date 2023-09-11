@@ -3,8 +3,9 @@
 
 import havasu
 
-__version__ = "1.0.1"
+__version__ = "1.0.1" # verion number
 
+# main
 def main():
     while True:
         menuChoices()
@@ -15,6 +16,7 @@ def main():
         
         elif menuChoice == 1:
             print("Access Database")
+            havasu.accessDatabase()
 
         elif menuChoice == 2:
             print("Static Analysis")
@@ -26,6 +28,7 @@ def main():
         
         elif menuChoice == 4:
             print("About Application")
+            havasu.about()
         
         else:
             print("Invalid Selected")

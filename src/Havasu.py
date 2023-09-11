@@ -17,3 +17,9 @@ def staticAnalysis():
 # Decompile APK file
 def decompileAPK():
     pass
+
+def about():
+    pass
+
+def accessDatabase():
+    pass
