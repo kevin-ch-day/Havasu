@@ -1,4 +1,7 @@
+# database.py
+
 import mysql.connector
+import pandas as pd
 
 connection = None
 cursor = None
@@ -88,3 +91,28 @@ def executeSQL(sql, values = None):
         closeConnection()
     # try
 # function
+
+def pandasDataFrame(sql):
+    global cursor
+    global connection
+
+    try:
+        createConnection()
+
+        results = pd.read_sql_query(sql, connection)
+        records = pd.DataFrame(results)
+
+        if not records:
+            return None
+        else:
+            return records
+    
+    except mysql.connector.Error as err:
+        print(err)
+        return None
+    
+    finally:
+        closeConnection()
+    # try
+# function
+    

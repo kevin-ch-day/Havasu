@@ -160,10 +160,9 @@ def loadMitreData():
     sql = sql + " from mitre_detection"
     sql = sql + " order by description, attack_id"
 
-    results = pd.read_sql_query(sql, database.connection)
-    records = pd.DataFrame(results)
+    df = db.pandasDataFrame(sql)
 
-    for index, row in records.iterrows():
+    for index, row in df.iterrows():
         col = row[0] + " " + row[1]
         columns.add(col)
     # for
@@ -174,14 +173,14 @@ def loadMitreData():
 def getMitreDict():
     print("getMitreDict()") # DEBUGGING
 
-    dict_mitre = dict()  
+    dict = dict()  
     for i in loadMitreData():
-        dict_mitre[i] = list()
+        dict[i] = list()
     # for
 
     print("\nLoading Mitre Data") # newline
     print("---------------") # newline
-    for k in dict_mitre:
+    for k in dict:
         print(k)
     # for
     print() # newline
@@ -190,28 +189,27 @@ def getMitreDict():
     sql = sql + " from mitre_detection"
     sql = sql + " order by trojan_id, description, ATTACK_ID"
 
-    results = pd.read_sql_query(sql, database.connection)
-    df_samples = pd.DataFrame(results)
+    df = db.pandasDataFrame(sql)
 
-    for index, row in df_samples.iterrows():
+    for index, row in df.iterrows():
         key = row[0] + " " + row[1]
         #print(key)
-        items = dict_mitre[key]
+        items = dict[key]
         items.append(row[2])
         items.sort()
-        dict_mitre[key] = items
+        dict[key] = items
     # for
 
-    return dict_mitre
+    return dict
 
 # Get mitre matrix columns
 def getMitreMatrixColumns():
     print("getMitreMatrixColumns()") # DEBUGGING
 
     sql = "SHOW COLUMNS FROM mitre_matrix"
-    results = pd.read_sql_query(sql, database.connection)
+    df = db.pandasDataFrame(sql)
     
-    cols = results.loc[:, 'Field']  
+    cols = df.loc[:, 'Field']  
     cols = cols.drop(cols.index[0])
 
     return cols.tolist()
@@ -221,11 +219,10 @@ def getSampleIds():
     print("getSampleIds()") # DEBUGGING
 
     sql = "select DISTINCT trojan_id from mitre_detection"
-    results = pd.read_sql_query(sql, database.connection)
-    records = pd.DataFrame(results)
+    df = db.pandasDataFrame(sql)
     
     temp = list()
-    for i in records.loc[:, 'trojan_id']:
+    for i in df.loc[:, 'trojan_id']:
         temp.append(i)
     # for
     temp.sort()
@@ -240,17 +237,14 @@ def addIdsMitreMatrix():
 
     for index in samples:
         sql = "select * from mitre_matrix where trojan_id = " + str(index)
-        results = pd.read_sql_query(sql, database.connection)
+        df = db.pandasDataFrame(sql)
         
-        if results.empty:
+        if df.empty:
             sql = "insert into mitre_matrix (trojan_id) value (%s)"
-            database.cursor.execute(sql, (str(index),))
-            database.connection.commit()
-
+            db.executeSQL(sql, (str(index),))
             print("Added sample id: " + str(index))
         # if
     # for
-
     print() # newline
 
 # Populate mitre matrix table
@@ -267,8 +261,7 @@ def populateMitreMatrixTable():
         if index not in columns:
             print(index + " Does not exist")
             sql = "ALTER TABLE `mitre_matrix` ADD `"+ index +"` varchar(1) null"
-            database.cursor.execute(sql)
-            database.connection.commit()
+            db.executeSQL(sql)
         # if
     # for
     print() # newline
@@ -279,8 +272,7 @@ def populateMitreMatrixTable():
         
         for i in values:
             sql = "UPDATE mitre_matrix SET `" + key + "` = 'X' WHERE trojan_id = " + str(i)
-            database.cursor.execute(sql)
-            database.connection.commit()
+            db.executeSQL(sql)
         # for
     # for
 
@@ -342,14 +334,14 @@ def displayLaTeXCharts(results, chartTitle):
 def outputMalwareRecordsById(ids):
     FILE_PATH = "Output\\Output-Excel.xlsx"
     sql = "SELECT * FROM mobfs_analysis WHERE id in " + ids
-    df = pd.read_sql_query(sql, database.cursor)
+    df = db.pandasDataFrame(sql)
     df.to_excel(FILE_PATH)
 
 # Generate sample data by family to .xlsx file
 def outputMalwareRecordsByFamily(database, family):
     FILE_PATH = "Output\\Output-Excel.xlsx"
     sql = "SELECT * FROM malware_samples WHERE family = '" + family + "'"        
-    df = pd.read_sql_query(sql, database.cursor)
+    df = db.pandasDataFrame(sql)
     df.to_excel(FILE_PATH)
 
 # Standard Permissions
@@ -362,7 +354,7 @@ def outputStandardPermissions(sample_set):
 
     sql_query = pd.read_sql_query(sql, database.connection)
     df_alpha = pd.DataFrame(sql_query)
-    df_beta = pd.DataFrame()
+    df_beta = pd.DataFrame() # create empty data frame
 
     df_beta['ID'] = df_alpha['ID']
     df_alpha = df_alpha.drop(columns=['ID'])
@@ -534,13 +526,8 @@ def recordNonStandardPermissions(trojan, unknownPermissions):
 
     # Create record for APK in table
     sql = "INSERT INTO detected_unknown_permissions (id) VALUES (%s)"
-    val = (trojan, )
-    try:
-        database.cursor.execute(sql, val)
-        database.connection.commit()
-    except mysql.connector.Error as err:
-        print("[!!] MySQL Error: {}".format(err))
-    # try
+    values = (trojan, )
+    db.executeSQL(sql, values)
 
     print("\n** Detected unknown permissions columns **")
     for index in unknownPermissions:
@@ -549,25 +536,12 @@ def recordNonStandardPermissions(trojan, unknownPermissions):
             # add new columns to table
             print("Adding new column: ", index) # DEBUGGING
             sql = "ALTER TABLE detected_unknown_permissions add " + index + " VARCHAR(1) NULL DEFAULT NULL"
-
-            try:
-                database.cursor.execute(sql)
-                database.connection.commit()
-                addedCols = addedCols + 1
-            except mysql.connector.Error as err:
-                print("[!!] MySQL Error: {}".format(err))
-            # try
+            db.executeSQL(sql)
         # if
 
         # update column within permission record
         sql = "update detected_unknown_permissions set " + index + " = 'X' where id = " + str(trojan)
-        try:
-            database.cursor.execute(sql)
-            database.connection.commit()
-            updatedCols = updatedCols + 1
-        except mysql.connector.Error as err:
-            print("[!!] MySQL Error: {}".format(err))
-        # try
+        db.executeSQL(sql)
     # for
 
     print(str(addedCols) + " columns added.")
