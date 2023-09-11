@@ -13,6 +13,7 @@ def createConnection():
     global connection
     global cursor
 
+    # configuration
     SERVER = "localhost"
     USERNAME = "root"
     DATABASE = "capstone_dev"
@@ -103,7 +104,6 @@ def getDataFrame(sql):
 
     try:
         createConnection()
-
         results = pd.read_sql_query(sql, connection)
         records = pd.DataFrame(results)
 
@@ -128,7 +128,6 @@ def pandasReadSQL(sql):
 
     try:
         createConnection()
-
         results = pd.read_sql_query(sql, connection)
 
         if not results:
@@ -144,4 +143,3 @@ def pandasReadSQL(sql):
         closeConnection()
     # try
 # function
-    

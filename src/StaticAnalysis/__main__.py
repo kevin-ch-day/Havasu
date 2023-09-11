@@ -1,3 +1,5 @@
+# __main__.py
+
 import os
 import datetime
 import zipfile

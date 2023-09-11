@@ -1,3 +1,5 @@
+# __main__.py
+
 import pandas as pd
 import openpyxl as xl
 import database as db

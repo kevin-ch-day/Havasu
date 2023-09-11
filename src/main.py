@@ -1,4 +1,4 @@
-# run.py
+# main.py
 # Main app driver for havasu
 
 import havasu
