@@ -1,4 +1,4 @@
-import database
+import Server.database as database
 import pandas as pd
 import openpyxl as xl
 import mysql.connector

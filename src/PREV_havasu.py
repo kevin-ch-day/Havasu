@@ -1,6 +1,6 @@
 # havasu.py
 
-from database import *
+from Server.database import *
 import pandas as pd
 import openpyxl as xl
 import mysql.connector
