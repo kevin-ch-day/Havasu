@@ -47,7 +47,7 @@ def closeConnection():
     # try
 # function
 
-def runQuery(sql):
+def queryData(sql):
     global cursor
 
     try:
@@ -64,6 +64,27 @@ def runQuery(sql):
         return None
     
     finally:
+        closeConnection()
+    # try
+# function
+
+def executeSQL(sql, values = None):
+    global cursor
+    global connection
+
+    try:
+        createConnection()
+        if not values:
+            cursor.execute(sql)
+        else:
+            cursor.execute(sql, values)
+        # if
+    except mysql.connector.Error as err:
+        print("[!!] MySQL Error: {}".format(err))
+        return None
+    
+    finally:
+        connection.commit()
         closeConnection()
     # try
 # function

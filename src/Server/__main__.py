@@ -7,7 +7,7 @@ def checkHash(hash):
     hashFound = False
     
     sql = "select * from malware_samples where md5 = '" + hash + "'"
-    results = db.runQuery(sql)
+    results = db.queryData(sql)
     if results:
         hashFound = True
         print("MD5 hash match found")
@@ -16,7 +16,7 @@ def checkHash(hash):
     # if
 
     sql = "select * from malware_samples where sha1 = '" + hash + "'"
-    results = db.runQuery(sql)
+    results = db.queryData(sql)
     if results:
         hashFound = True
         print("SHA1 hash match found")
@@ -25,7 +25,7 @@ def checkHash(hash):
     # if
 
     sql = "select * from malware_samples where sha256 = '" + hash + "'"
-    results = db.runQuery(sql)
+    results = db.queryData(sql)
     if results:
         hashFound = True
         print("SHA256 hash match found")
@@ -57,8 +57,7 @@ def checkPermissionRecords(id):
 def createPermissionRecord(trojan_id):
     sql = "INSERT INTO detected_standard_permissions (id) VALUES (%s)"
     val = (trojan_id, )
-    database.cursor.execute(sql, val)
-    database.connection.commit()
+    db.executeSQL(sql, val)
     print("Permission record created for " + trojan_id)
 
 # Read Mitre data
@@ -89,11 +88,9 @@ def readMitreData():
             print(data) # DEGUGGING
             values.append(data)
 
-            database.cursor.execute(sql, data)
+            db.executeSQL(sql, values)
             #print(cursor.rowcount, "record inserted.")
         # for
-
-        database.connection.commit()
         print() # newline
     # for
 
@@ -110,8 +107,7 @@ def readDetectedPermissions():
 def getStandardAndroidPermissionList():
     permissions = list()
 
-    database.cursor.execute("show columns from detected_standard_permissions")
-    results = database.cursor.fetchall()
+    results = db.runQuery("show columns from detected_standard_permissions")
     if not results:
         print("[!!] - No permission columns retrieved from database.")
         exit()
@@ -142,16 +138,10 @@ def recordAndroidPermissions(trojan, permissions):
 
         # if permission does not exists within table
         else:
-            try:
-                sql = "UPDATE detected_standard_permissions SET "
-                sql = sql + slicedPermissions + " = 'X' WHERE id = " + str(trojan)
-                database.cursor.execute(sql)
-                database.connection.commit()
-                updatedColumns = updatedColumns + 1
-            except mysql.connector.Error as err:
-                print("[!!] MySQL Error: {}".format(err))
-                exit()
-            # try
+            sql = "UPDATE detected_standard_permissions SET "
+            sql = sql + slicedPermissions + " = 'X' WHERE id = " + str(trojan)
+            db.executeSQL(sql)
+            updatedColumns = updatedColumns + 1
         # if
     # for
 
@@ -304,7 +294,7 @@ def generateLaTexCharts(family):
     sql = sql + "FROM malware_samples "
     sql = sql + "WHERE family = '" + family + "' order by id"
 
-    results = db.runQuery(sql)
+    results = db.queryData(sql)
     displayLaTeXCharts(results, "\nDataset Labels\n")
 
     sql = "SELECT y.id, y.security_score score, y.grade, "
@@ -312,7 +302,7 @@ def generateLaTexCharts(family):
     sql = sql + "FROM malware_samples x JOIN mobfs_analysis y ON y.id = x.id "
     sql = sql + "where x.family = '" + family + "' order by x.id"
 
-    results = db.runQuery(sql)
+    results = db.queryData(sql)
     displayLaTeXCharts(results, "\nMobSF Security Score\n")
 
     sql = "select x.id, "
@@ -328,7 +318,7 @@ def generateLaTexCharts(family):
     sql = sql + "where x.family = '" + family + "' "
     sql = sql + "order by x.id "
 
-    results = db.runQuery(sql)
+    results = db.queryData(sql)
     displayLaTeXCharts(results, "\nStatic Analysis\n")
 
 # Display LaTeX Charts
