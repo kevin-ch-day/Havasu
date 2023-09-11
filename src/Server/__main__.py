@@ -4,37 +4,34 @@ import pandas as pd
 import openpyxl as xl
 import database as db
 
-# Check supplied hash against database records 
+# Check hash against database records 
 def checkHash(hash):
     
     # MD5
     sql = "select * from malware_samples where md5 = '" + hash + "'"
     results = db.queryData(sql)
     if results:
-        print("MD5 hash match found")
+        print("MD5 match found.")
         displayMalwareRecord(results)
         return
-    # if
 
     # SHA1
     sql = "select * from malware_samples where sha1 = '" + hash + "'"
     results = db.queryData(sql)
     if results:
-        print("SHA1 hash match found")
+        print("SHA1 match found.")
         displayMalwareRecord(results)
         return
-    # if
 
     # SHA256
     sql = "select * from malware_samples where sha256 = '" + hash + "'"
     results = db.queryData(sql)
     if results:
-        print("SHA256 hash match found")
+        print("SHA256 match found.")
         displayMalwareRecord(results)
         return
-    # if
 
-    print("No hash record found.")
+    print("No matching record found.")
 
 # Display malware record
 def displayMalwareRecord(record):
@@ -248,7 +245,7 @@ def populateMitreMatrixTable():
     columns = getMitreMatrixColumns()
     dict_mitreMatrix = getMitreDict()
     
-    # iterator to find any missing columns 
+    # Iterate to find any missing columns 
     for index in dict_mitreMatrix:
         
         # check if column does not exist in the table

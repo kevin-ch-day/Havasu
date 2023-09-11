@@ -4,40 +4,39 @@ import os
 import datetime
 import zipfile
 
-# decompile APK file
-def decompileAPK(apk):
+# decompile APK using Apktool
+def apkTool(apk):
     os.system("apktool d " + apk)
 
-# convert APK to JAR file
-def generateJAR(apk):
+# convert APK to JAR using dex2jar
+def dex2jar(apk):
     os.system("d2j-dex2jar " + apk)
-
 
 # Read AndroidManifest.xml permissions
 def getManifestPermissions(androidManifest):
     standardPermissions = list()
     unknownPermissions = list()
     signaturePermissions = list()
-    temp_string = ""
+    buffer = ""
 
     for index in androidManifest:
         if "uses-permission" in index:
-            startPos = index.find("android:name=")
+            startingPos = index.find("android:name=")
             offset = len("android:name=")+1
-            temp_string = index[startPos+offset:-4]
+            buffer = index[startingPos + offset : -4]
 
-            if "permission " in temp_string:
-                temp = len("permission android.permission.")
-                temp_string = temp_string[temp:]
-                standardPermissions.append(temp_string)
+            if "permission " in buffer:
+                startingPos = len("permission android.permission.")
+                buffer = buffer[startingPos:]
+                standardPermissions.append(buffer)
                                 
-            elif "com." in temp_string:
-                unknownPermissions.append(temp_string)
+            elif "com." in buffer:
+                unknownPermissions.append(buffer)
                                 
             else:
-                temp = len("android.permission.")
-                temp_string = temp_string[temp:]
-                standardPermissions.append(temp_string)
+                startingPos = len("android.permission.")
+                buffer = buffer[startingPos:]
+                standardPermissions.append(buffer)
             # if
         # if
     # for

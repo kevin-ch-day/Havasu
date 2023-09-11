@@ -18,6 +18,7 @@ def main():
 
         elif menuChoice == 2:
             print("Static Analysis")
+            havasu.staticAnalysis()
         
         elif menuChoice == 3:
             print("Check Hash")
