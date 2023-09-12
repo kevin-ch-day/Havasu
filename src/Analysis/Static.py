@@ -4,6 +4,10 @@ import os
 import datetime
 import zipfile
 
+def run():
+    print("Static Analysis")
+    print(os.listdir("/Input"))
+
 # decompile APK using Apktool
 def os_apkTool(apk_file):
     os.system("apktool d " + apk_file)

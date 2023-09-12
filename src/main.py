@@ -7,9 +7,11 @@ __version__ = "1.0.1" # verion number
 
 # main
 def main():
+    print("*~*~*~* Havasu *~*~*~*\n")
     while True:
         menuChoices()
         menuChoice = input("Select choice: ")
+        menuChoice = int(menuChoice)
         if menuChoice == 0:
             print("Exiting.")
             exit(0)
@@ -41,7 +43,7 @@ def menuChoices():
     print("2 - Static Analysis")
     print("3 - Check Hash")
     print("4 - About Application")
-    print("0 - Exit")
+    print("0 - Exit\n")
 
 if __name__ == "__main__":
    main() # run app
