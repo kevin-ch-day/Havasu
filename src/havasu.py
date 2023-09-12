@@ -1,6 +1,6 @@
 # havasu.py
 
-import ApkAnalysis
+from Analysis import Static
 import Server
 
 # prompts user to enter a hash to search for
@@ -12,7 +12,7 @@ def checkHash():
         Server.checkHash(hash)
 
 def staticAnalysis():
-    ApkAnalysis.
+    Static.main()
 
 def about():
     pass

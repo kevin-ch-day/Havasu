@@ -17,33 +17,32 @@ def main():
             exit(0)
         
         elif menuChoice == 1:
-            print("Access Database")
+            print("Access Database\n")
             havasu.accessDatabase()
 
         elif menuChoice == 2:
-            print("Static Analysis")
             havasu.staticAnalysis()
         
         elif menuChoice == 3:
-            print("Check Hash")
+            print("Check Hash\n")
             havasu.checkHash()
         
         elif menuChoice == 4:
-            print("About Application")
+            print("About Application\n")
             havasu.about()
         
         else:
-            print("Invalid Selected")
+            print("Invalid Selected\n")
         # if
-    # menu loop
+    # menu
 # main
 
 def menuChoices():
-    print("1 - Access Database")
-    print("2 - Static Analysis")
-    print("3 - Check Hash")
-    print("4 - About Application")
-    print("0 - Exit\n")
+    print(" 1 - Access Database")
+    print(" 2 - Static Analysis")
+    print(" 3 - Check Hash")
+    print(" 4 - About Application")
+    print(" 0 - Exit\n")
 
 if __name__ == "__main__":
    main() # run app

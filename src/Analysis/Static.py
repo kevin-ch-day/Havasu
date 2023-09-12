@@ -4,17 +4,77 @@ import os
 import datetime
 import zipfile
 
-def run():
-    print("Static Analysis")
-    print(os.listdir("/Input"))
+def main():
+    menu()
+    while True:
+        menu()
+        menuChoice = input("Select choice: ")
+        menuChoice = int(menuChoice)
+        if menuChoice == 0:
+            print("Exiting.")
+            exit(0)
+        
+        elif menuChoice == 1:
+            displayAvailableApks()
 
-# decompile APK using Apktool
-def os_apkTool(apk_file):
-    os.system("apktool d " + apk_file)
+        elif menuChoice == 2:
+            decompileApk()
+        
+        elif menuChoice == 3:
+            exploreApk()
+        
+        elif menuChoice == 9:
+            break
+        
+        else:
+            print("Invalid Selected\n")
+        # if
+    # menu
 
-# convert APK to JAR using dex2jar
-def os_dex2jar(apk_file):
-    os.system("d2j-dex2jar " + apk_file)
+def menu():
+    print("Static Analysis\n")
+    print(" 1 - Display Available APKs")
+    print(" 2 - Decompile APK") 
+    print(" 3 - Explore APK") 
+    print(" 9 - Return to main")
+    print(" 0 - Exit app")
+
+def exploreApk():
+    print("Explore APK")
+
+def decompileApk():
+    print("Decompile APK file")
+
+def displayAvailableApks():
+    files = os.listdir("Input")
+    apks = list()
+    
+    for index in files:
+        if ".apk" in index:
+            apks.append(index)
+        # if
+    # for
+    
+    if not apks:
+        print("No apks found")
+    
+    else:
+        print("Select an APK to analysis")
+        cnt = 1
+        for index in apks:
+            print(" [" + str(cnt) + "] " + index)
+            cnt = cnt + 1
+        # for
+    # if
+
+
+# Apktool
+def apkTool(APK_PATH):
+    os.system("apktool d " + APK_PATH)
+
+# Dex2jar
+def os_dex2jar(APK_PATH):
+    os.system("d2j-dex2jar " + APK_PATH)
 
 # Read AndroidManifest.xml permissions
 def getManifestPermissions(androidManifest):
