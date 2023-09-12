@@ -7,7 +7,7 @@ __version__ = "1.0.1" # verion number
 
 # main
 def main():
-    print("*~*~*~* Havasu *~*~*~*\n")
+    print("*~*~*~* Havasu *~*~*~*")
     while True:
         menuChoices()
         menuChoice = input("Select choice: ")
@@ -38,6 +38,7 @@ def main():
 # main
 
 def menuChoices():
+    print("\nMain Menu")
     print(" 1 - Access Database")
     print(" 2 - Static Analysis")
     print(" 3 - Check Hash")

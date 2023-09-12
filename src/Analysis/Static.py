@@ -5,10 +5,9 @@ import datetime
 import zipfile
 
 def main():
-    menu()
     while True:
         menu()
-        menuChoice = input("Select choice: ")
+        menuChoice = input("\nSelect choice: ")
         menuChoice = int(menuChoice)
         if menuChoice == 0:
             print("Exiting.")
@@ -32,7 +31,7 @@ def main():
     # menu
 
 def menu():
-    print("Static Analysis\n")
+    print("\nStatic Analysis")
     print(" 1 - Display Available APKs")
     print(" 2 - Decompile APK") 
     print(" 3 - Explore APK") 
@@ -46,7 +45,7 @@ def decompileApk():
     print("Decompile APK file")
 
 def displayAvailableApks():
-    files = os.listdir("Input")
+    files = os.listdir("Input/APKs")
     apks = list()
     
     for index in files:
@@ -59,14 +58,13 @@ def displayAvailableApks():
         print("No apks found")
     
     else:
-        print("Select an APK to analysis")
+        print("\nAvaiable APKs")
         cnt = 1
         for index in apks:
             print(" [" + str(cnt) + "] " + index)
             cnt = cnt + 1
         # for
     # if
-
 
 # Apktool
 def apkTool(APK_PATH):
