@@ -21,6 +21,9 @@ def main():
         
         elif menuChoice == 3:
             exploreApk()
+
+        elif menuChoice == 4:
+            ApkToJar()
         
         elif menuChoice == 9:
             break
@@ -32,9 +35,10 @@ def main():
 
 def menu():
     print("\nStatic Analysis")
-    print(" 1 - Display Available APKs")
-    print(" 2 - Decompile APK") 
-    print(" 3 - Explore APK") 
+    print(" 1 - Display Available APK files")
+    print(" 2 - Decompile APK")
+    print(" 3 - APK to JAR") 
+    print(" 4 - Explore Decompiled APK") 
     print(" 9 - Return to main")
     print(" 0 - Exit app")
 
@@ -42,37 +46,64 @@ def exploreApk():
     print("Explore APK")
 
 def decompileApk():
-    print("Decompile APK file")
+    print("Decompile APK file\n")
+    APK_FILE = input("Enter APK to decompile: ")
+    APK_PATH = "Input/APK/" + APK_FILE
+    os_apktool(APK_FILE, APK_PATH)
 
 def displayAvailableApks():
-    files = os.listdir("Input/APKs")
+    files = os.listdir("Input/APK")
     apks = list()
     
     for index in files:
         if ".apk" in index:
             apks.append(index)
-        # if
-    # for
     
     if not apks:
         print("No apks found")
-    
     else:
         print("\nAvaiable APKs")
         cnt = 1
         for index in apks:
             print(" [" + str(cnt) + "] " + index)
             cnt = cnt + 1
-        # for
-    # if
 
 # Apktool
-def apkTool(APK_PATH):
-    os.system("apktool d " + APK_PATH)
+def os_apktool(APK_FILE, APK_PATH):
+    if not ".apk" in APK_FILE:
+        print("Error: Invaild file suppiled")
+
+    else:
+        index = APK_FILE.index(".apk")
+        OUTPUT_FILE_NAME = APK_FILE[:index]
+        decompiledDir = os.listdir("Output/Decompiled")
+
+        if not OUTPUT_FILE_NAME in decompiledDir:
+            os.system("apktool d " + APK_PATH + " --output Output/Decompiled/" + OUTPUT_FILE_NAME)
+        else:
+            print("Error: APK already decompiled")
+        # if
+    # if
+
+def ApkToJar():
+    pass
 
 # Dex2jar
-def os_dex2jar(APK_PATH):
-    os.system("d2j-dex2jar " + APK_PATH)
+def os_dex2jar(APK_FILE, APK_PATH):
+    if not ".apk" in APK_FILE:
+        print("Error: Invaild file suppiled")
+
+    else:
+        index = APK_FILE.index(".apk")
+        OUTPUT_JAR_NAME = APK_FILE[:index]
+        generatedJars = os.listdir("Output/JAR")
+
+        if not OUTPUT_JAR_NAME in generatedJars:
+            os.system("d2j-dex2jar " + APK_PATH + " --output Output/JAR/" + OUTPUT_JAR_NAME)
+        else:
+            print("Error: APK already decompiled")
+        # if
+    # if
 
 # Read AndroidManifest.xml permissions
 def getManifestPermissions(androidManifest):
@@ -122,8 +153,9 @@ def getPermissions(manifest):
 
             # standard formatted Android permission
             if "android:name=" in manifestLine:
+
                 # find beginning of permission
-                startIndex = manifestLine.index("android:name=")# starting index
+                startIndex = manifestLine.index("android:name=") # starting index
                 temp = manifestLine[startIndex + len("android:name=") + 1 :] # slice
             
                 # find end of permission
@@ -135,6 +167,7 @@ def getPermissions(manifest):
                 
             # Non-standard formatted Android Permission
             elif "android.permission." in manifestLine:
+
                 #print(manifestLine) # DEBUGGING
                 temp = manifestLine[manifestLine.index("android.permission."):]
                 endIndex = temp.index("\"/>")
@@ -270,6 +303,7 @@ def getManifestFeaturesUsed(manifest):
                 
                 #print("Gles Version: "+glEsVersion)
                 key = "glEsVersion=" + glEsVersion
+            
             else:
                 unknownFeatures.append(index.strip())
                 unknownFeatures = True
@@ -283,7 +317,7 @@ def getManifestFeaturesUsed(manifest):
 
                 if status.lower() == "true":
                     usesFeatures[key] = True
-                    continue # next iteration
+                    continue
                 # if
 
             #print("Required: "+str(isRequired)+"\n")
@@ -296,7 +330,7 @@ def getManifestFeaturesUsed(manifest):
         cnt = 1
         for i in unknownFeatures:
             print("["+str(cnt)+"] "+i)
-            cnt = cnt + 1 # increment count
+            cnt = cnt + 1
         # for
     # if
 
@@ -335,7 +369,7 @@ def logPermissions(apk):
     # Scan AndroidManifest.xml
     try:
         f = open(ANDROID_MANIFEST_PATH, "r")
-        androidManifest = f.readlines() # copy AndroidManifest.xml
+        androidManifest = f.readlines() # read the contents of AndroidManifest.xml
         f.close()
     except IOError as e:
         print("I/O error({0}): {1}".format(e.errno, e.strerror))
@@ -450,7 +484,8 @@ def analyzeAndroidManifest(apk):
     # Log APK services
     services = getManifestServices(androidManifest)
     log.write("Services\n")
-    
+
+    # Write services to log files
     for i in services:
         log.write(i + "\n")
     log.write("\n")
