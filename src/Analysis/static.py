@@ -249,7 +249,7 @@ def getCompileSDKVersion(manifestTag):
     startIndex = manifestTag.find("compileSdkVersion=\"")
     sliced = manifestTag[startIndex:]
             
-	# find tag ending
+	# find end of tag
     if not sliced.find("\" ") == -1:
         endIndex = sliced.find("\" ")
     else:
@@ -262,7 +262,7 @@ def getCompileSDKVersionCodename(manifestTag):
     startTag = manifestTag.find("compileSdkVersionCodename=\"")
     sliced = manifestTag[startTag:]
     
-    # find tag ending
+    # find end of tag
     if not sliced.find("\" ") == -1:
         endTag = sliced.find("\" ")
     else:
@@ -275,7 +275,7 @@ def getPackageName(manifestTag):
     startPos = manifestTag.find("package=\"")
     sliced = manifestTag[startPos:]
             
-    # find tag ending
+    # find end of tag
     if not sliced.find("\" ") == -1:
         endPos = sliced.find("\" ")
     else:
@@ -288,7 +288,7 @@ def getPlatformBuildVersionCode(manifestTag):
     startPos = manifestTag.find("platformBuildVersionCode=\"")
     sliced = manifestTag[startPos:]
 
-    # find tag ending
+    # find end of tag
     if not sliced.find("\" ") == -1:
         endPos = sliced.find("\" ")
     else:
@@ -315,7 +315,9 @@ def getUsesFeatures(ANDROID_MANIFEST_PATH):
     unknownFeatures = list()
     unknownFeaturesFound = False
     
-    for index in manifest:
+    androidManifest = readAndroidManifest(ANDROID_MANIFEST_PATH)
+
+    for index in androidManifest:
         if "<uses-feature " in index:
             featureName = ""
             glEsVersion = ""
@@ -388,15 +390,7 @@ def copyManifestAsTxt(APK_NAME, ANDROID_MANIFEST_PATH):
 def logPermissions(APK_NAME, ANDROID_MANIFEST_PATH):
     PERMISSION_LOG_PATH = "Output/" + APK_NAME + "_DetectedPermissions.txt"	
 
-    try:
-        f = open(ANDROID_MANIFEST_PATH, "r")
-        androidManifest = f.readlines()
-        f.close()
-    except IOError as e:
-        print("I/O error({0}): {1}".format(e.errno, e.strerror))
-        exit()
-    finally:
-        f.close()
+    androidManifest = readAndroidManifest(ANDROID_MANIFEST_PATH)
 
     standard = list()
     unknown = list()
@@ -412,8 +406,8 @@ def logPermissions(APK_NAME, ANDROID_MANIFEST_PATH):
         else:
             unknown.append(index)
     
-    log = open(PERMISSION_LOG_PATH, "w")
     try:
+        log = open(PERMISSION_LOG_PATH, "w")
         log.write("APK name: " + APK_NAME +"\n")
         log.write("Total permissions: " + str(len(permissions)) + "\n\n")
         
@@ -435,9 +429,10 @@ def logPermissions(APK_NAME, ANDROID_MANIFEST_PATH):
             unknown.sort()
             for index in unknown:
                 log.write(index + "\n")
-
-    except IOError:
-        print("IO ERROR")
+    
+    except IOError as e:
+        print("I/O error({0}): {1}".format(e.errno, e.strerror))
+        exit()
 
 # Analyze Android manifest
 def analyzeAndroidManifest(APK_NAME, ANDROID_MANIFEST_PATH):
@@ -445,17 +440,7 @@ def analyzeAndroidManifest(APK_NAME, ANDROID_MANIFEST_PATH):
     ANALYIS_LOG_PATH = "Output/" + APK_NAME + "_AnalysisLog.txt"
     date = datetime.datetime.now().strftime("%A %B %d, %Y %I:%M %p")
     
-    try:
-        f = open(ANDROID_MANIFEST_PATH, "r")
-        androidManifest = f.readlines() # copy manifest
-        f.close()
-    
-    except IOError as e:
-        print("I/O error({0}): {1}".format(e.errno, e.strerror))
-        exit()
-
-    finally:
-        f.close()
+    androidManifest = readAndroidManifest(ANDROID_MANIFEST_PATH)
 
     # APK Meta Data
     manifestTag = getManifestTag(androidManifest)
@@ -484,27 +469,32 @@ def analyzeAndroidManifest(APK_NAME, ANDROID_MANIFEST_PATH):
     log.write("\nStandard Permissions: " + str(len(standardPermissions)) + "\n")
     for i in standardPermissions:
         log.write(i + "\n")
-    # for
-    log.write("\n")
     
     # Custom Permissions
-    log.write("Unknown Permissions: " + str(len(customPermissions)) + "\n")
+    log.write("\nUnknown Permissions: " + str(len(customPermissions)) + "\n")
     for i in customPermissions:
         log.write(i + "\n")
-    log.write("\n")
 
     # Log APK uses-features
     uses_features = getUsesFeatures(androidManifest)
     if uses_features:
-        log.write("USES-FEATURES\n")
+        log.write("\nUSES-FEATURES\n")
         for key,value in uses_features.items():
             log.write(key+" "+str(value)+"\n")
         log.write("\n")
-    # if
     
     # Log APK services
     services = getManifestServices(androidManifest)
-    log.write("Services\n")
+    log.write("\nServices\n")
     for i in services:
         log.write(i + "\n")
-    log.write("\n")
+
+def readAndroidManifest(ANDROID_MANIFEST_PATH):
+    try:
+        f = open(ANDROID_MANIFEST_PATH, "r")
+        return f.readlines() 
+    except IOError as e:
+        print("I/O error({0}): {1}".format(e.errno, e.strerror))
+        exit()
+    finally:
+        f.close()
