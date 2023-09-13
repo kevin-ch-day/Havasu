@@ -310,7 +310,7 @@ def getPlatformBuildVersionName(manifestTag):
     return sliced[sliced.find("\"")+1:endPos]
 
 # Get AndroidManifest.xml features used
-def getManifestFeaturesUsed(manifest):
+def getUsesFeatures(ANDROID_MANIFEST_PATH):
     usesFeatures = dict()
     unknownFeatures = list()
     unknownFeaturesFound = False
@@ -325,8 +325,6 @@ def getManifestFeaturesUsed(manifest):
                 sliced = index[startPos+len("android:name=\""):]
                 endPos = sliced.find("\"")
                 featureName = sliced[:endPos]
-
-                #print("Feature: "+featureName)
                 key = featureName
 
             elif not index.find("android:glEsVersion=\"") == -1: 
@@ -352,7 +350,6 @@ def getManifestFeaturesUsed(manifest):
                     usesFeatures[key] = True
                     continue
 
-            #print("Required: "+str(isRequired)+"\n")
             usesFeatures[key] = False
     
     if unknownFeatures:
@@ -367,9 +364,8 @@ def getManifestFeaturesUsed(manifest):
     return usesFeatures
 
 # AndroidManifest.xml to text
-def copyManifestAsTxt(apk):
-    name = apk[:-4]
-    ANDROID_MANIFEST_PATH = "./" + apk + "/AndroidManifest.xml"
+def copyManifestAsTxt(APK_NAME, ANDROID_MANIFEST_PATH):
+    name = APK_NAME[:-4]
     OUTPUT_PATH = "Output/" + name + "_AndroidManifest.txt"
     
     try:
@@ -389,15 +385,12 @@ def copyManifestAsTxt(apk):
         exit()
 
 # Log detected Android permissions
-def logPermissions(apk):
-    APK_FILE_NAME = apk[:-4]
-    ANDROID_MANIFEST_PATH = "./" + APK_FILE_NAME + "/AndroidManifest.xml"
-    PERMISSION_LOG_PATH = "Output/" + APK_FILE_NAME + "_DetectedPermissions.txt"	
+def logPermissions(APK_NAME, ANDROID_MANIFEST_PATH):
+    PERMISSION_LOG_PATH = "Output/" + APK_NAME + "_DetectedPermissions.txt"	
 
-    # Scan AndroidManifest.xml
     try:
         f = open(ANDROID_MANIFEST_PATH, "r")
-        androidManifest = f.readlines() # read the contents of AndroidManifest.xml
+        androidManifest = f.readlines()
         f.close()
     except IOError as e:
         print("I/O error({0}): {1}".format(e.errno, e.strerror))
@@ -409,7 +402,6 @@ def logPermissions(apk):
     unknown = list()
     
     permissions = getPermissions(androidManifest)
-    #print("Total permissions: " + len(detectedPermissions))
     if(len(permissions) == 0 ):
         print("No permissions detected.")
         return
@@ -422,7 +414,7 @@ def logPermissions(apk):
     
     log = open(PERMISSION_LOG_PATH, "w")
     try:
-        log.write("APK name: " + APK_FILE_NAME +"\n")
+        log.write("APK name: " + APK_NAME +"\n")
         log.write("Total permissions: " + str(len(permissions)) + "\n\n")
         
         # standard format permissions
@@ -448,13 +440,11 @@ def logPermissions(apk):
         print("IO ERROR")
 
 # Analyze Android manifest
-def analyzeAndroidManifest(APK_NAME):
+def analyzeAndroidManifest(APK_NAME, ANDROID_MANIFEST_PATH):
 
     ANALYIS_LOG_PATH = "Output/" + APK_NAME + "_AnalysisLog.txt"
-    logDate = datetime.datetime.now().strftime("%A %B %d, %Y %I:%M %p")
-    ANDROID_MANIFEST_PATH = "./" + APK_NAME + "/AndroidManifest.xml"
+    date = datetime.datetime.now().strftime("%A %B %d, %Y %I:%M %p")
     
-    # Scan AndroidManifest.xml
     try:
         f = open(ANDROID_MANIFEST_PATH, "r")
         androidManifest = f.readlines() # copy manifest
@@ -482,7 +472,7 @@ def analyzeAndroidManifest(APK_NAME):
     # Write log
     log = open(ANALYIS_LOG_PATH, "w")
     log.write("File: " + APK_NAME + "\n")
-    log.write("Date: " + logDate + "\n")
+    log.write("Date: " + date + "\n")
     log.write("Package: " + package_name + "\n")
     log.write("Compiled SDK Version: " + compile_sdk_version + "\n")
     log.write("Compiled SDK Version Codename: " + compile_sdk_version_codename + "\n")
@@ -504,7 +494,7 @@ def analyzeAndroidManifest(APK_NAME):
     log.write("\n")
 
     # Log APK uses-features
-    uses_features = getManifestFeaturesUsed(androidManifest)
+    uses_features = getUsesFeatures(androidManifest)
     if uses_features:
         log.write("USES-FEATURES\n")
         for key,value in uses_features.items():
