@@ -279,7 +279,7 @@ def getPackageName(manifestTag):
     if not sliced.find("\" ") == -1:
         endPos = sliced.find("\" ")
     else:
-        endPos = sliced.find("\">"
+        endPos = sliced.find("\">")
 
     return sliced[sliced.find("\"")+1:endPos]
 
