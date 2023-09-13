@@ -149,7 +149,6 @@ def getManifestPermissions(androidManifest):
     standardPermissions = list()
     unknownPermissions = list()
     signaturePermissions = list()
-    buffer = ""
 
     for index in androidManifest:
         if "uses-permission" in index:
@@ -250,69 +249,81 @@ def getManifestServices(manifest):
     services.sort() # sort services found
     return services
 
-# Get APK META data
-def getAPKMetaData(manifest):
+# get AndroidManifest Tag
+def getManifestTag(manifest):
     for index in manifest:
         if "<manifest " in index:
-            startPos = index.find("compileSdkVersion=\"")
-            sliced = index[startPos:]
+            return index
+
+# APK Compiled SDK Version
+def getCompileSDKVersion(manifestTag):
+    startIndex = manifestTag.find("compileSdkVersion=\"")
+    sliced = manifestTag[startIndex:]
             
-            # check if at end of the tag
-            if not sliced.find("\" ") == -1:
-                endPos = sliced.find("\" ")
-            else:
-                endPos = sliced.find("\">")
-            # if
+	# find tag ending
+    if not sliced.find("\" ") == -1:
+        endIndex = sliced.find("\" ")
+    else:
+        endIndex = sliced.find("\">")
+    # if
 
-            compileSdkVersion = sliced[sliced.find("\"")+1:endPos]
-            startPos = index.find("compileSdkVersionCodename=\"")
-            sliced = index[startPos:]
+    return sliced[sliced.find("\"") + 1 : endIndex]
 
-            # check if at end of the tag
-            if not sliced.find("\" ") == -1:
-                endPos = sliced.find("\" ")
-            else:
-                endPos = sliced.find("\">")
-            # if
+# APK Compile SDK Version Codename
+def getCompileSDKVersionCodename(manifestTag):
+    startTag = manifestTag.find("compileSdkVersionCodename=\"")
+    sliced = manifestTag[startTag:]
+    
+    # find tag ending
+    if not sliced.find("\" ") == -1:
+        endTag = sliced.find("\" ")
+    else:
+        endTag = sliced.find("\">")
+    # if
+    
+    return sliced[sliced.find("\"") + 1 : endTag]
 
-            compileSdkVersionCodename = sliced[sliced.find("\"")+1:endPos]
-
-            startPos = index.find("package=\"")
-            sliced = index[startPos:]
+# APK Package name
+def getPackageName(manifestTag):
+    startPos = manifestTag.find("package=\"")
+    sliced = manifestTag[startPos:]
             
-            # check if at end of the tag
-            if not sliced.find("\" ") == -1:
-                endPos = sliced.find("\" ")
-            else:
-                endPos = sliced.find("\">")
-            # if
+    # find tag ending
+    if not sliced.find("\" ") == -1:
+        endPos = sliced.find("\" ")
+    else:
+        endPos = sliced.find("\">")
+    # if
 
-            apkPackagename = sliced[sliced.find("\"")+1:endPos]
-            startPos = index.find("platformBuildVersionCode=\"")
-            sliced = index[startPos:]
+    return sliced[sliced.find("\"")+1:endPos]
 
-            # check if at end of the tag
-            if not sliced.find("\" ") == -1:
-                endPos = sliced.find("\" ")
-            else:
-                endPos = sliced.find("\">")
-            # if
+# APK Platform Build Version Code
+def getPlatformBuildVersionCode(manifestTag):
+    startPos = manifestTag.find("platformBuildVersionCode=\"")
+    sliced = manifestTag[startPos:]
 
-            platformBuildVersionCode = sliced[sliced.find("\"")+1:endPos]
-            startPos = index.find("platformBuildVersionName=\"")
-            sliced = index[startPos:]
+    # find tag ending
+    if not sliced.find("\" ") == -1:
+        endPos = sliced.find("\" ")
+    else:
+        endPos = sliced.find("\">")
+    # if
 
-            # check if at end of the tag
-            if not sliced.find("\" ") == -1:
-                endPos = sliced.find("\" ")
-            else:
-                endPos = sliced.find("\">")
-            # if
+    return sliced[sliced.find("\"")+1:endPos]
 
-            platformBuildVersionName = sliced[sliced.find("\"")+1:endPos]
-            return compileSdkVersion, compileSdkVersionCodename, apkPackagename, platformBuildVersionCode, platformBuildVersionName
-        # if
-    # for
+# APK Platform Build Version Name
+def getPlatformBuildVersionName(manifestTag):
+    startPos = manifestTag.find("platformBuildVersionName=\"")
+    sliced = manifestTag[startPos:]
+
+    # check if at end of the tag
+    if not sliced.find("\" ") == -1:
+        endPos = sliced.find("\" ")
+    else:
+        endPos = sliced.find("\">")
+    # if
+
+    return sliced[sliced.find("\"")+1:endPos]
 
 # Get AndroidManifest.xml features used
 def getManifestFeaturesUsed(manifest):
@@ -376,7 +387,7 @@ def getManifestFeaturesUsed(manifest):
     return usesFeatures
 
 # AndroidManifest.xml to text
-def manifestToTxt(apk):
+def copyManifestAsTxt(apk):
     name = apk[:-4]
     ANDROID_MANIFEST_PATH = "./" + apk + "/AndroidManifest.xml"
     OUTPUT_PATH = "Output/" + name + "_AndroidManifest.txt"
@@ -385,13 +396,13 @@ def manifestToTxt(apk):
         manifest = open(ANDROID_MANIFEST_PATH, "r")
         androidManifest = manifest.readlines() # copy manifest
         manifest.close()
-        f = open(OUTPUT_PATH, "w")
+        txt = open(OUTPUT_PATH, "w")
         
         try:
-            for i in androidManifest:
-                f.write(i)
+            for line in androidManifest:
+                txt.write(line)
         finally:
-            f.close()
+            txt.close()
         # try
 
     except IOError as e:
@@ -468,7 +479,7 @@ def logPermissions(apk):
 def analyzeAndroidManifest(APK_NAME):
 
     ANALYIS_LOG_PATH = "Output/" + APK_NAME + "_AnalysisLog.txt"
-    DATE = datetime.datetime.now().strftime("%A %B %d, %Y %I:%M %p")
+    logDate = datetime.datetime.now().strftime("%A %B %d, %Y %I:%M %p")
     ANDROID_MANIFEST_PATH = "./" + APK_NAME + "/AndroidManifest.xml"
     
     # Scan AndroidManifest.xml
@@ -485,18 +496,27 @@ def analyzeAndroidManifest(APK_NAME):
         f.close()
     # try
 
-    compileSdkVersion, compileSdkVersionCodename, apkPackagename, platformBuildVersionCode, platformBuildVersionName = getAPKMetaData(androidManifest)
+    # APK Meta Data
+    manifestTag = getManifestTag(androidManifest)
+    compile_sdk_version = getCompileSDKVersion(manifestTag)
+    compile_sdk_version_codename = getCompileSDKVersionCodename(manifestTag)
+    package_name = getPackageName(manifestTag)
+    platform_build_version_code = getPlatformBuildVersionCode(manifestTag)
+    platform_build_version_name = getPlatformBuildVersionName(manifestTag)
+
+    # Permissions
     standardPermissions, customPermissions = getManifestPermissions(androidManifest)
     num_permissions = str(len(standardPermissions) +  len(customPermissions))
 
+    # Write log
     log = open(ANALYIS_LOG_PATH, "w")
     log.write("File: " + APK_NAME + "\n")
-    log.write("Date: " + DATE + "\n")
-    log.write("Package: " + apkPackagename + "\n")
-    log.write("Compiled SDK Version: " + compileSdkVersion + "\n")
-    log.write("Compiled SDK Version Codename: " + compileSdkVersionCodename + "\n")
-    log.write("Platform Build Version Code: " + platformBuildVersionCode + "\n")
-    log.write("Platform Build Version Name: " + platformBuildVersionName + "\n")
+    log.write("Date: " + logDate + "\n")
+    log.write("Package: " + package_name + "\n")
+    log.write("Compiled SDK Version: " + compile_sdk_version + "\n")
+    log.write("Compiled SDK Version Codename: " + compile_sdk_version_codename + "\n")
+    log.write("Platform Build Version Code: " + platform_build_version_code + "\n")
+    log.write("Platform Build Version Name: " + platform_build_version_name + "\n")
     log.write("Total Permissions: " + num_permissions+"\n")
     
     # Standard Permissions
