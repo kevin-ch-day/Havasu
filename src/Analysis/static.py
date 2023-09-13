@@ -7,7 +7,7 @@ import zipfile
 # main
 def main():
     while True:
-        menu()
+        staticMenu()
         menuChoice = input("\nSelect choice: ")
         menuChoice = int(menuChoice)
         
@@ -43,7 +43,7 @@ def main():
     # menu
 
 # Static analysis menu
-def menu():
+def staticMenu():
     print("\nStatic Analysis")
     print(" 1 - Display Available APK files")
     print(" 2 - Decompile APK")
@@ -51,17 +51,6 @@ def menu():
     print(" 4 - Scan Decompiled APK") 
     print(" 9 - Return to main")
     print(" 0 - Exit app")
-
-
-# Decompile APK
-def decompileApk():
-    print("Decompile APK file\n")
-    APK_FILE = input("Enter APK to decompile: ")
-    if APK_FILE == "-1": # exit case
-        return
-    # if
-    APK_PATH = "Input/APK/" + APK_FILE
-    os_apktool(APK_FILE, APK_PATH)
 
 # Display available APKS
 def displayAvailableApks():
@@ -80,6 +69,16 @@ def displayAvailableApks():
         for index in apks:
             print(" [" + str(cnt) + "] " + index)
             cnt = cnt + 1
+
+# Decompile APK
+def decompileApk():
+    print("Decompile APK file\n")
+    APK_FILE = input("Enter APK to decompile: ")
+    if APK_FILE == "-1" or None: # exit case
+        return
+    # if
+    APK_PATH = "Input/APK/" + APK_FILE
+    os_apktool(APK_FILE, APK_PATH)
 
 # Apktool
 def os_apktool(APK_FILE, APK_PATH):
@@ -168,9 +167,6 @@ def getManifestPermissions(androidManifest):
                 startingPos = len("android.permission.")
                 buffer = buffer[startingPos:]
                 standardPermissions.append(buffer)
-            # if
-        # if
-    # for
     
     standardPermissions.sort()
     unknownPermissions.sort()
@@ -215,14 +211,9 @@ def getPermissions(manifest):
                 if unknownPermissionFormat:
                     unknownExample = manifestLine
                     unknownCnt = unknownCnt + 1
-                # if
-                
-            # default
+
             else:
                 print("[*] Cannot process permission: " + manifestLine)
-            # if
-        # if
-    # for
     
     if unknownPermissionFormat:
         print("\n[*] Possible permission obfuscation: " + str(unknownCnt))
@@ -239,12 +230,10 @@ def getManifestServices(manifest):
     services = list() # empty list
     for line in manifest:
         if "<service " in line:
-            startPos = line.find("android:name=")+len("android:name=\"")
+            startPos = line.find("android:name=") + len("android:name=\"")
             temp = line[startPos:]
             endPos = int(temp.find("\""))
             services.append(temp[:(endPos)])
-        # if
-    # for
     
     services.sort() # sort services found
     return services
@@ -265,7 +254,6 @@ def getCompileSDKVersion(manifestTag):
         endIndex = sliced.find("\" ")
     else:
         endIndex = sliced.find("\">")
-    # if
 
     return sliced[sliced.find("\"") + 1 : endIndex]
 
@@ -279,7 +267,6 @@ def getCompileSDKVersionCodename(manifestTag):
         endTag = sliced.find("\" ")
     else:
         endTag = sliced.find("\">")
-    # if
     
     return sliced[sliced.find("\"") + 1 : endTag]
 
@@ -292,8 +279,7 @@ def getPackageName(manifestTag):
     if not sliced.find("\" ") == -1:
         endPos = sliced.find("\" ")
     else:
-        endPos = sliced.find("\">")
-    # if
+        endPos = sliced.find("\">"
 
     return sliced[sliced.find("\"")+1:endPos]
 
@@ -307,7 +293,6 @@ def getPlatformBuildVersionCode(manifestTag):
         endPos = sliced.find("\" ")
     else:
         endPos = sliced.find("\">")
-    # if
 
     return sliced[sliced.find("\"")+1:endPos]
 
@@ -321,7 +306,6 @@ def getPlatformBuildVersionName(manifestTag):
         endPos = sliced.find("\" ")
     else:
         endPos = sliced.find("\">")
-    # if
 
     return sliced[sliced.find("\"")+1:endPos]
 
@@ -358,7 +342,6 @@ def getManifestFeaturesUsed(manifest):
                 unknownFeatures.append(index.strip())
                 unknownFeatures = True
                 continue
-            # if
 
             if not index.find("android:required=\"") == -1:
                 startPos = index.find("android:required=\"")
@@ -368,12 +351,9 @@ def getManifestFeaturesUsed(manifest):
                 if status.lower() == "true":
                     usesFeatures[key] = True
                     continue
-                # if
 
             #print("Required: "+str(isRequired)+"\n")
             usesFeatures[key] = False
-        # if
-    # for
     
     if unknownFeatures:
         print("\nUnknown Features Found:")
@@ -403,12 +383,10 @@ def copyManifestAsTxt(apk):
                 txt.write(line)
         finally:
             txt.close()
-        # try
 
     except IOError as e:
         print("I/O error({0}): {1}".format(e.errno, e.strerror))
         exit()
-    # try
 
 # Log detected Android permissions
 def logPermissions(apk):
@@ -426,7 +404,6 @@ def logPermissions(apk):
         exit()
     finally:
         f.close()
-    # try
 
     standard = list()
     unknown = list()
@@ -436,15 +413,12 @@ def logPermissions(apk):
     if(len(permissions) == 0 ):
         print("No permissions detected.")
         return
-    # if
     
     for index in permissions:
         if "android.permission." in index:
             standard.append(index)
         else:
             unknown.append(index)
-        # if
-    # for
     
     log = open(PERMISSION_LOG_PATH, "w")
     try:
@@ -469,11 +443,9 @@ def logPermissions(apk):
             unknown.sort()
             for index in unknown:
                 log.write(index + "\n")
-            # for
-        # if
+
     except IOError:
         print("IO ERROR")
-    # try
 
 # Analyze Android manifest
 def analyzeAndroidManifest(APK_NAME):
@@ -494,7 +466,6 @@ def analyzeAndroidManifest(APK_NAME):
 
     finally:
         f.close()
-    # try
 
     # APK Meta Data
     manifestTag = getManifestTag(androidManifest)
