@@ -72,6 +72,8 @@ def displayAvailableApks():
 
 # Decompile APK
 def decompileApk():
+    displayAvailableApks()
+    
     print("Decompile APK file\n")
     APK_FILE = input("Enter APK to decompile: ")
     if APK_FILE == "-1" or None: # exit case
@@ -144,7 +146,7 @@ def scanApk():
     print(APK_MANIFEST_PATH)
 
 # Get permissions
-def getAndroidManifestPermissions(androidManifest):
+def analyzeManifestPermissions(androidManifest):
     permissionDict = {}
     permissionDict['standard'] = list()
     permissionDict['unknown'] = list()
@@ -375,7 +377,7 @@ def logPermissions(APK_NAME, ANDROID_MANIFEST_PATH):
     standard = list()
     unknown = list()
     
-    permissions = getPermissions(androidManifest)
+    permissions = analyzeManifestPermissions(androidManifest)
     if(len(permissions) == 0 ):
         print("No permissions detected.")
         return
@@ -431,7 +433,7 @@ def analyzeAndroidManifest(APK_NAME, ANDROID_MANIFEST_PATH):
     platform_build_version_name = getPlatformBuildVersionName(manifestTag)
 
     # Permissions
-    standardPermissions, customPermissions = getManifestPermissions(androidManifest)
+    standardPermissions, customPermissions = analyzeManifestPermissions(androidManifest)
     num_permissions = str(len(standardPermissions) +  len(customPermissions))
 
     # Write log
