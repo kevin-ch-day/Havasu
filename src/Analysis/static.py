@@ -143,87 +143,67 @@ def scanApk():
     ANALYSIS_DIR_PATH = "Output/Analysis/" + apkChoice
     print(APK_MANIFEST_PATH)
 
-# Read AndroidManifest.xml permissions
-def getManifestPermissions(androidManifest):
-    standardPermissions = list()
-    unknownPermissions = list()
-    signaturePermissions = list()
-
-    for index in androidManifest:
-        if "uses-permission" in index:
-            startingPos = index.find("android:name=")
-            offset = (len("android:name=") + 1)
-            buffer = index[startingPos + offset : -4]
-
-            if "permission " in buffer:
-                startingPos = len("permission android.permission.")
-                buffer = buffer[startingPos:]
-                standardPermissions.append(buffer)
-                                
-            elif "com." in buffer:
-                unknownPermissions.append(buffer)
-                                
-            else:
-                startingPos = len("android.permission.")
-                buffer = buffer[startingPos:]
-                standardPermissions.append(buffer)
-    
-    standardPermissions.sort()
-    unknownPermissions.sort()
-    return standardPermissions, unknownPermissions
-
 # Get permissions
-def getPermissions(manifest):
-    detectedPermissions = list()
-    unknownPermissionFormat = False
-    unknownExample = ""
-    unknownCnt = 0
+def getAndroidManifestPermissions(androidManifest):
+    permissionDict = {}
+    permissionDict['standard'] = list()
+    permissionDict['unknown'] = list()
     
-    for manifestLine in manifest:
-        manifestLine = manifestLine.strip() # remove whitespace
+    USES_PERMSSION = "uses-permission"
+    PERMS_ATTR_NAME_LABEL = "android:name="
+    ANDROID_PERMISSION = "android.permission."
+
+    detecedPermissions = list()
+    detecedUnknownPermissions = list()
+    
+    for manifestIndex in androidManifest:
+        manifestIndex = manifestIndex.strip()
         
-        # check is user-permission is within manifest line
-        if "uses-permission" in manifestLine:
+        # user-permission
+        if USES_PERMSSION in manifestIndex:
 
             # standard formatted Android permission
-            if "android:name=" in manifestLine:
+            if PERMS_ATTR_NAME_LABEL in manifestIndex:
 
                 # find beginning of permission
-                startIndex = manifestLine.index("android:name=") # starting index
-                temp = manifestLine[startIndex + len("android:name=") + 1 :] # slice
+                positionX = manifestIndex.index(PERMS_ATTR_NAME_LABEL) # starting index
+                positionY = positionX + len(PERMS_ATTR_NAME_LABEL) + 1
+                lineSlice = manifestIndex[positionY : ] # tail slice
             
                 # find end of permission
-                endIndex = temp.index("\"/>") # ending index
-                temp = temp[:endIndex] # slice
+                positionZ = lineSlice.index("\"/>") # ending index
+                lineSlice = lineSlice[ : positionZ] # head slice
             
-                #print(sPerm) # DEBUG: Captured Permission
-                detectedPermissions.append(temp)
+                #print(lineSlice) # Debugging: captured permission name
+                detecedPermissions.append(lineSlice)
                 
-            # Non-standard formatted Android Permission
-            elif "android.permission." in manifestLine:
+            # android.permission.
+            elif ANDROID_PERMISSION in manifestIndex:
 
-                #print(manifestLine) # DEBUGGING
-                temp = manifestLine[manifestLine.index("android.permission."):]
-                endIndex = temp.index("\"/>")
-                permissionSliced = temp[:endIndex]
-                detectedPermissions.append(permissionSliced)
-                unknownPermissionFormat = True
-                if unknownPermissionFormat:
-                    unknownExample = manifestLine
-                    unknownCnt = unknownCnt + 1
+                unknownPermissionCnt = unknownPermissionCnt + 1
+                
+                #print(manifestIndex) # DEBUGGING
+                positionX = manifestIndex.index(ANDROID_PERMISSION)
+                permission_name = manifestIndex[positionX : ]
+                
+                positionY = permission_name.index("\"/>")
+                permission_name = permission_name[ : positionY]
+                
+                detecedPermissions.append(permission_name)
+                detecedUnknownPermissions.append(manifestIndex)
 
             else:
-                print("[*] Cannot process permission: " + manifestLine)
+                print("[*] Cannot process permission: " + manifestIndex)
     
-    if unknownPermissionFormat:
-        print("\n[*] Possible permission obfuscation: " + str(unknownCnt))
-        print("Example: " + unknownExample)
-    # if
+    if detecedUnknownPermissions:
+        print("\n[*] Detected Unknown Permissions")
+        for i in detecedUnknownPermissions:
+            print(i)
 
-    detectedPermissions = list(dict.fromkeys(detectedPermissions))
-    detectedPermissions.sort()
+    detecedPermissions = list(dict.fromkeys(detecedPermissions))
+    detecedPermissions.sort()
     
-    return detectedPermissions
+    return detecedPermissions, detecedUnknownPermissions  
 
 # Get AndroidManifest.xml services
 def getManifestServices(manifest):
