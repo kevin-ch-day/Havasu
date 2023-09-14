@@ -30,7 +30,7 @@ def main():
 
         # Scan decompiled APK
         elif menuChoice == 4:
-            scanApk()
+            analyzeAndroidApk()
         
         # Return to main menu
         elif menuChoice == 9:
@@ -125,7 +125,7 @@ def os_dex2jar(APK_FILE, APK_PATH):
     # if
 
 # Scan decompile APK
-def scanApk():
+def analyzeAndroidApk():
     files = os.listdir("Output/Decompiled")
     cnt = 1
     print("Avaiable Decompiled APKs:")
@@ -146,7 +146,7 @@ def scanApk():
     print(APK_MANIFEST_PATH)
 
 # Get permissions
-def analyzeManifestPermissions(androidManifest):
+def analyzePermissions(androidManifest):
     permissionDict = {}
     permissionDict['standard'] = list()
     permissionDict['unknown'] = list()
@@ -377,7 +377,7 @@ def logPermissions(APK_NAME, ANDROID_MANIFEST_PATH):
     standard = list()
     unknown = list()
     
-    permissions = analyzeManifestPermissions(androidManifest)
+    permissions = analyzePermissions(androidManifest)
     if(len(permissions) == 0 ):
         print("No permissions detected.")
         return
@@ -417,7 +417,7 @@ def logPermissions(APK_NAME, ANDROID_MANIFEST_PATH):
         exit()
 
 # Analyze Android manifest
-def analyzeAndroidManifest(APK_NAME, ANDROID_MANIFEST_PATH):
+def createManifestAnalysisLog(APK_NAME, ANDROID_MANIFEST_PATH):
 
     ANALYIS_LOG_PATH = "Output/" + APK_NAME + "_AnalysisLog.txt"
     date = datetime.datetime.now().strftime("%A %B %d, %Y %I:%M %p")
@@ -433,8 +433,9 @@ def analyzeAndroidManifest(APK_NAME, ANDROID_MANIFEST_PATH):
     platform_build_version_name = getPlatformBuildVersionName(manifestTag)
 
     # Permissions
-    standardPermissions, customPermissions = analyzeManifestPermissions(androidManifest)
+    standardPermissions, customPermissions = analyzePermissions(androidManifest)
     num_permissions = str(len(standardPermissions) +  len(customPermissions))
+    logPermissions(APK_NAME, ANDROID_MANIFEST_PATH)
 
     # Write log
     log = open(ANALYIS_LOG_PATH, "w")
