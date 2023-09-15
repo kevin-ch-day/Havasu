@@ -512,12 +512,15 @@ def logManifestAnalysis(APK_NAME, ANDROID_MANIFEST_PATH):
     # Log APK uses-features
     detectedFeatures, unknownDetectedFeatures = getUsesFeatures(androidManifest)
 
-    print(type(detectedFeatures))
-    print(type(unknownDetectedFeatures))
-
     if detectedFeatures:
         log.write("\nUSES-FEATURES\n")
         for key,value in detectedFeatures.items():
+            log.write(key+" "+str(value)+"\n")
+        log.write("\n")
+
+    if unknownDetectedFeatures:
+        log.write("\n[UNKNOWN] USES-FEATURES\n")
+        for key,value in unknownDetectedFeatures.items():
             log.write(key+" "+str(value)+"\n")
         log.write("\n")
     
