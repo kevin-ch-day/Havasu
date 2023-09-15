@@ -72,7 +72,7 @@ def decompileApk():
     APK_FILE = input("Enter APK to decompile: ")
     if APK_FILE == "-1" or None: # exit case
         return
-    # if
+
     APK_PATH = "Input/APK/" + APK_FILE
     os_apktool(APK_FILE, APK_PATH)
 
@@ -115,25 +115,22 @@ def os_dex2jar(APK_FILE, APK_PATH):
             os.system("d2j-dex2jar " + APK_PATH + " --output Output/JAR/" + OUTPUT_JAR_NAME)
         else:
             print("Error: APK already decompiled")
-        # if
-    # if
 
 # Scan decompile APK
 def analyzeAndroidApk():
     files = os.listdir("Output/Decompiled")
     cnt = 1
+
     print("Avaiable Decompiled APKs:")
     avaibleApks = list()
     for index in files:
         print(" [" + str(cnt) + "] " + index)
         avaibleApks.append(index)
         cnt = cnt + 1
-    # for
 
     user_apk_choice = input("\nEnter selection: ")
     if user_apk_choice == "-1": # exit case
         return
-    # if
 
     APK_MANIFEST_PATH = "Output/Decompiled/" + user_apk_choice + "/AndroidManifest.xml"
     ANALYSIS_DIR_PATH = "Output/Analysis/" + user_apk_choice
@@ -186,6 +183,7 @@ def analyzeAndroidApk():
         case 9: # Exit to main
             return
 
+# Static Analysis APK Manu
 def analyzeApkMenu():
     print(" 1 - Meta Data")
     print(" 2 - Permissions")
