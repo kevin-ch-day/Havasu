@@ -67,8 +67,7 @@ def displayAvailableApks():
 def decompileApk():
     displayAvailableApks()
     
-    print("Decompile APK file\n")
-    APK_FILE = input("Enter APK to decompile: ")
+    APK_FILE = input("\nEnter APK to decompile: ")
     if APK_FILE == "-1" or None: # exit case
         return
 
@@ -179,7 +178,7 @@ def analyzeAndroidApk():
 
         elif userChoice ==  4: # Services
             services = getManifestServices(androidManifest)
-            print("\nDetected Services")
+            print("\nDetected Services:")
             for i in services:
                 print(i)
                 
@@ -363,9 +362,8 @@ def getPlatformBuildVersionName(manifestTag):
 # Get AndroidManifest.xml features used
 def getUsesFeatures(androidManifest):
 
-    usesFeatures = dict()
-    unknownFeatures = list()
-    unknownFeaturesFound = False
+    detectedFeautres = dict()
+    unknownDetectedFeatures = list()
 
     for index in androidManifest:
         if "<uses-feature " in index:
@@ -389,8 +387,8 @@ def getUsesFeatures(androidManifest):
                 key = "glEsVersion=" + glEsVersion
             
             else:
-                unknownFeatures.append(index.strip())
-                unknownFeatures = True
+                unknownDetectedFeatures.append(index.strip())
+                unknownDetectedFeatures = True
                 continue
 
             if not index.find("android:required=\"") == -1:
@@ -399,12 +397,12 @@ def getUsesFeatures(androidManifest):
                 status = x[:x.find("\"")]
 
                 if status.lower() == "true":
-                    usesFeatures[key] = True
+                    detectedFeautres[key] = True
                     continue
 
-            usesFeatures[key] = False
+            detectedFeautres[key] = False
 
-    return usesFeatures, unknownFeatures
+    return detectedFeautres, unknownDetectedFeatures
 
 # AndroidManifest.xml to text
 def copyManifestAsTxt(APK_NAME, ANDROID_MANIFEST_PATH):
@@ -429,7 +427,7 @@ def copyManifestAsTxt(APK_NAME, ANDROID_MANIFEST_PATH):
 
 # Log detected Android permissions
 def logPermissions(APK_NAME, ANDROID_MANIFEST_PATH):
-    PERMISSION_LOG_PATH = "Output/" + APK_NAME + "_DetectedPermissions.txt"	
+    PERMISSION_LOG_PATH = "Output/Analysis/" + APK_NAME + "_DetectedPermissions.txt"	
 
     androidManifest = readAndroidManifest(ANDROID_MANIFEST_PATH)
 
@@ -462,7 +460,7 @@ def logPermissions(APK_NAME, ANDROID_MANIFEST_PATH):
         # for
         
         # unknown permissions
-        if len(unknown) != 0:
+        if not unknown :
             log.write("\n")
             print("\nUnknown permissions: " + str(len(unknown)))
             #log.write("\nUnknown permissions: " + str(len(unknown)) + "\n")
@@ -478,7 +476,7 @@ def logPermissions(APK_NAME, ANDROID_MANIFEST_PATH):
 # Analyze Android manifest
 def logManifestAnalysis(APK_NAME, ANDROID_MANIFEST_PATH):
 
-    ANALYIS_LOG_PATH = "Output/" + APK_NAME + "_AnalysisLog.txt"
+    ANALYIS_LOG_PATH = "Output/Analysis/" + APK_NAME + "_AnalysisLog.txt"
     date = datetime.datetime.now().strftime("%A %B %d, %Y %I:%M %p")
     
     androidManifest = readAndroidManifest(ANDROID_MANIFEST_PATH)
@@ -512,10 +510,14 @@ def logManifestAnalysis(APK_NAME, ANDROID_MANIFEST_PATH):
         log.write(i + "\n")
 
     # Log APK uses-features
-    uses_features = getUsesFeatures(androidManifest)
-    if uses_features:
+    detectedFeatures, unknownDetectedFeatures = getUsesFeatures(androidManifest)
+
+    print(type(detectedFeatures))
+    print(type(unknownDetectedFeatures))
+
+    if detectedFeatures:
         log.write("\nUSES-FEATURES\n")
-        for key,value in uses_features.items():
+        for key,value in detectedFeatures.items():
             log.write(key+" "+str(value)+"\n")
         log.write("\n")
     
@@ -527,11 +529,17 @@ def logManifestAnalysis(APK_NAME, ANDROID_MANIFEST_PATH):
 
 # Read AndroidManifest.xml
 def readAndroidManifest(ANDROID_MANIFEST_PATH):
+    androidManifest = None
+
     try:
         f = open(ANDROID_MANIFEST_PATH, "r")
-        return f.readlines() 
+        androidManifest = f.readlines() 
+
     except IOError as e:
         print("I/O error({0}): {1}".format(e.errno, e.strerror))
         exit()
+
     finally:
         f.close()
+
+    return androidManifest
