@@ -8,36 +8,28 @@ import zipfile
 def main():
     while True:
         staticMenuOption = staticMenu()
-
         match staticMenuOption:
         
-            # Exit application
-            case 0:
+            case 0: # Exit application
                 print("Exiting.")
                 exit(0)
         
-            # Display available apks
-            case 1:
+            case 1: # Display available apks
                 displayAvailableApks()
 
-            # Decompile APK
-            case 2:
+            case 2: # Decompile APK
                 decompileApk()
         
-            # Convert APK to JAR
-            case 3:
+            case 3: # Convert APK to JAR
                 apkToJar()
 
-            # Scan decompiled APK
-            case 4:
+            case 4: # Scan decompiled APK
                 analyzeAndroidApk()
         
-            # Return to main menu
-            case 9:
+            case 9: # Return to main menu
                 break
         
-            # Invalid user selection
-            case default:
+            case default: # Invalid user selection
                 print("Invalid Selected\n")
 
 # Static analysis menu
@@ -138,15 +130,61 @@ def analyzeAndroidApk():
         cnt = cnt + 1
     # for
 
-    apkChoice = input("\nEnter selection: ")
-    if apkChoice == "-1": # exit case
+    user_apk_choice = input("\nEnter selection: ")
+    if user_apk_choice == "-1": # exit case
         return
     # if
 
-    APK_MANIFEST_PATH = "Output/Decompiled/" + apkChoice + "/AndroidManifest.xml"
-    ANALYSIS_DIR_PATH = "Output/Analysis/" + apkChoice
+    APK_MANIFEST_PATH = "Output/Decompiled/" + user_apk_choice + "/AndroidManifest.xml"
+    ANALYSIS_DIR_PATH = "Output/Analysis/" + user_apk_choice
+    apk_name = user_apk_choice[:-4]
     print(APK_MANIFEST_PATH)
+
+    androidManifest = readAndroidManifest(APK_MANIFEST_PATH)
+    manifestTag = getManifestTag(androidManifest)
+
     userChoice = analyzeApkMenu()
+
+    match userChoice:
+        case 0: # Exit
+            exit()
+
+        case 1: # META Data
+            displayMetaData(manifestTag)
+        
+        case 2: # Permissions
+            detectedPermissions, unknownPermissions = analyzePermissions(androidManifest)
+
+            print("Detected Permissions")
+            for i in detectedPermissions:
+                print(i)
+
+            print("Detected Unknown Permissions")
+            for i in unknownPermissions:
+                print(i)
+
+        case 3: # Uses-Features
+            usesFeatures, unknownFeatures = getUsesFeatures(androidManifest)
+
+            print("Detected Uses-features")
+            for i in usesFeatures:
+                print(i)
+
+            print("Detected Unknown Features")
+            for i in unknownFeatures:
+                print(i)
+
+        case 4: # Services
+            services = getManifestServices(androidManifest)
+            print("Detected Services")
+            for i in services:
+                print(i)
+            
+        case 5: # Log results
+            logManifestAnalysis(apk_name, APK_MANIFEST_PATH)
+        
+        case 9: # Exit to main
+            return
 
 def analyzeApkMenu():
     print(" 1 - Meta Data")
@@ -222,10 +260,17 @@ def analyzePermissions(androidManifest):
     
     return detecedPermissions, detecedUnknownPermissions  
 
+def displayMetaData(manifestTag):
+    print("Package: " + getPackageName(manifestTag) + "\n")
+    print("Compiled SDK Version: " + getCompileSDKVersion(manifestTag) + "\n")
+    print("Compiled SDK Version Codename: " + getCompileSDKVersionCodename(manifestTag) + "\n")
+    print("Platform Build Version Code: " + getPlatformBuildVersionCode(manifestTag) + "\n")
+    print("Platform Build Version Name: " + getPlatformBuildVersionName(manifestTag) + "\n")
+
 # Get AndroidManifest.xml services
-def getManifestServices(manifest):
+def getManifestServices(androidManifest):
     services = list() # empty list
-    for line in manifest:
+    for line in androidManifest:
         if "<service " in line:
             startPos = line.find("android:name=") + len("android:name=\"")
             temp = line[startPos:]
@@ -307,12 +352,10 @@ def getPlatformBuildVersionName(manifestTag):
     return sliced[sliced.find("\"")+1:endPos]
 
 # Get AndroidManifest.xml features used
-def getUsesFeatures(ANDROID_MANIFEST_PATH):
+def getUsesFeatures(androidManifest):
     usesFeatures = dict()
     unknownFeatures = list()
     unknownFeaturesFound = False
-    
-    androidManifest = readAndroidManifest(ANDROID_MANIFEST_PATH)
 
     for index in androidManifest:
         if "<uses-feature " in index:
@@ -350,17 +393,8 @@ def getUsesFeatures(ANDROID_MANIFEST_PATH):
                     continue
 
             usesFeatures[key] = False
-    
-    if unknownFeatures:
-        print("\nUnknown Features Found:")
-        cnt = 1
-        for i in unknownFeatures:
-            print("["+str(cnt)+"] "+i)
-            cnt = cnt + 1
-        # for
-    # if
 
-    return usesFeatures
+    return usesFeatures, unknownFeatures
 
 # AndroidManifest.xml to text
 def copyManifestAsTxt(APK_NAME, ANDROID_MANIFEST_PATH):
@@ -432,36 +466,30 @@ def logPermissions(APK_NAME, ANDROID_MANIFEST_PATH):
         exit()
 
 # Analyze Android manifest
-def createManifestAnalysisLog(APK_NAME, ANDROID_MANIFEST_PATH):
+def logManifestAnalysis(APK_NAME, ANDROID_MANIFEST_PATH):
 
     ANALYIS_LOG_PATH = "Output/" + APK_NAME + "_AnalysisLog.txt"
     date = datetime.datetime.now().strftime("%A %B %d, %Y %I:%M %p")
     
     androidManifest = readAndroidManifest(ANDROID_MANIFEST_PATH)
-
-    # APK Meta Data
     manifestTag = getManifestTag(androidManifest)
-    compile_sdk_version = getCompileSDKVersion(manifestTag)
-    compile_sdk_version_codename = getCompileSDKVersionCodename(manifestTag)
-    package_name = getPackageName(manifestTag)
-    platform_build_version_code = getPlatformBuildVersionCode(manifestTag)
-    platform_build_version_name = getPlatformBuildVersionName(manifestTag)
 
     # Permissions
     standardPermissions, customPermissions = analyzePermissions(androidManifest)
-    num_permissions = str(len(standardPermissions) +  len(customPermissions))
+    num_permissions = str(len(standardPermissions) + len(customPermissions))
     logPermissions(APK_NAME, ANDROID_MANIFEST_PATH)
 
     # Write log
     log = open(ANALYIS_LOG_PATH, "w")
-    log.write("File: " + APK_NAME + "\n")
-    log.write("Date: " + date + "\n")
-    log.write("Package: " + package_name + "\n")
-    log.write("Compiled SDK Version: " + compile_sdk_version + "\n")
-    log.write("Compiled SDK Version Codename: " + compile_sdk_version_codename + "\n")
-    log.write("Platform Build Version Code: " + platform_build_version_code + "\n")
-    log.write("Platform Build Version Name: " + platform_build_version_name + "\n")
-    log.write("Total Permissions: " + num_permissions+"\n")
+    log.write("File: " + APK_NAME)
+    log.write("\nDate: " + date)
+    log.write("\nPackage: " + getPackageName(manifestTag))
+    log.write("\nCompiled SDK Version: " + getCompileSDKVersion(manifestTag))
+    log.write("\nCompiled SDK Version Codename: " + getCompileSDKVersionCodename(manifestTag))
+    log.write("\nPlatform Build Version Code: " + getPlatformBuildVersionCode(manifestTag))
+    log.write("\nPlatform Build Version Name: " + getPlatformBuildVersionName(manifestTag))
+    log.write("\nTotal Permissions: " + num_permissions)
+    log.write("\n")
     
     # Standard Permissions
     log.write("\nStandard Permissions: " + str(len(standardPermissions)) + "\n")
