@@ -8,33 +8,32 @@ import zipfile
 def main():
     while True:
         staticMenuOption = staticMenu()
-        match staticMenuOption:
-        
-            case 0: # Exit application
-                print("Exiting.")
-                exit(0)
-        
-            case 1: # Display available apks
-                displayAvailableApks()
 
-            case 2: # Decompile APK
+        if staticMenuOption == 0: # Exit application
+            print("Exiting.")
+            exit(0)
+
+        elif staticMenuOption == 1: # Display available apks
+                displayAvailableApks()
+        
+        elif staticMenuOption == 2: # Decompile APK
                 decompileApk()
         
-            case 3: # Convert APK to JAR
+        elif staticMenuOption == 3: # Convert APK to JAR
                 apkToJar()
-
-            case 4: # Scan decompiled APK
+        
+        elif staticMenuOption == 4: # Scan decompiled APK
                 analyzeAndroidApk()
         
-            case 9: # Return to main menu
+        elif staticMenuOption == 9: # Return to main menu
                 break
         
-            case default: # Invalid user selection
-                print("Invalid Selected\n")
+        else:
+            print("Invalid Selected\n")
 
 # Static analysis menu
 def staticMenu():
-    print("\nStatic Analysis")
+    print("\n** Static Analysis **")
     print(" 1 - Display Available APK files")
     print(" 2 - Decompile APK")
     print(" 3 - APK to JAR") 
@@ -121,7 +120,7 @@ def analyzeAndroidApk():
     files = os.listdir("Output/Decompiled")
     cnt = 1
 
-    print("Avaiable Decompiled APKs:")
+    print("Available Decompiled APKs:")
     avaibleApks = list()
     for index in files:
         print(" [" + str(cnt) + "] " + index)
@@ -135,56 +134,67 @@ def analyzeAndroidApk():
     APK_MANIFEST_PATH = "Output/Decompiled/" + user_apk_choice + "/AndroidManifest.xml"
     ANALYSIS_DIR_PATH = "Output/Analysis/" + user_apk_choice
     apk_name = user_apk_choice[:-4]
-    print(APK_MANIFEST_PATH)
+    
+    print("APK MANIFEST PATH:" + APK_MANIFEST_PATH) # Debugging
 
     androidManifest = readAndroidManifest(APK_MANIFEST_PATH)
     manifestTag = getManifestTag(androidManifest)
 
-    userChoice = analyzeApkMenu()
+    while True:
+        userChoice = analyzeMenuOptions()
+        if userChoice == 0: # Exit
+                exit()
 
-    match userChoice:
-        case 0: # Exit
-            exit()
-
-        case 1: # META Data
+        elif userChoice == 1: # META Data
             displayMetaData(manifestTag)
-        
-        case 2: # Permissions
+            
+        elif userChoice ==  2: # Permissions
             detectedPermissions, unknownPermissions = analyzePermissions(androidManifest)
 
-            print("Detected Permissions")
-            for i in detectedPermissions:
-                print(i)
+            if (not detectedPermissions) and (not unknownPermissions):
+                print("\nNo permissions found")
+            
+            else:
+                if detectedPermissions:
+                    print("\nAPK Permissions:")
+                    for i in detectedPermissions:
+                        print(i)
 
-            print("Detected Unknown Permissions")
-            for i in unknownPermissions:
-                print(i)
+                if unknownPermissions:
+                    print("\nAPK Unknown Permissions:")
+                    for i in unknownPermissions:
+                        print(i)
 
-        case 3: # Uses-Features
+        elif userChoice ==  3: # Uses-Features
+            print(androidManifest)
             usesFeatures, unknownFeatures = getUsesFeatures(androidManifest)
 
-            print("Detected Uses-features")
+            print("\nDetected Uses-features")
             for i in usesFeatures:
                 print(i)
 
-            print("Detected Unknown Features")
+            print("\nDetected Unknown Features")
             for i in unknownFeatures:
                 print(i)
 
-        case 4: # Services
+        elif userChoice ==  4: # Services
             services = getManifestServices(androidManifest)
-            print("Detected Services")
+            print("\nDetected Services")
             for i in services:
                 print(i)
-            
-        case 5: # Log results
+                
+        elif userChoice ==  5: # Log results
             logManifestAnalysis(apk_name, APK_MANIFEST_PATH)
-        
-        case 9: # Exit to main
+            
+        elif userChoice ==  9: # Exit to main
             return
+        
+        else:
+            print("\nInvalid Selected\n")
 
 # Static Analysis APK Manu
-def analyzeApkMenu():
+def analyzeMenuOptions():
+    print("\n** Analyze APK **")
     print(" 1 - Meta Data")
     print(" 2 - Permissions")
     print(" 3 - Uses-Features")
@@ -259,11 +269,12 @@ def analyzePermissions(androidManifest):
     return detecedPermissions, detecedUnknownPermissions  
 
 def displayMetaData(manifestTag):
-    print("Package: " + getPackageName(manifestTag) + "\n")
-    print("Compiled SDK Version: " + getCompileSDKVersion(manifestTag) + "\n")
-    print("Compiled SDK Version Codename: " + getCompileSDKVersionCodename(manifestTag) + "\n")
-    print("Platform Build Version Code: " + getPlatformBuildVersionCode(manifestTag) + "\n")
-    print("Platform Build Version Name: " + getPlatformBuildVersionName(manifestTag) + "\n")
+    print("Package: " + getPackageName(manifestTag))
+    print("Compiled SDK Version: " + getCompileSDKVersion(manifestTag))
+    print("Compiled SDK Version Codename: " + getCompileSDKVersionCodename(manifestTag))
+    print("Platform Build Version Code: " + getPlatformBuildVersionCode(manifestTag))
+    print("Platform Build Version Name: " + getPlatformBuildVersionName(manifestTag))
+    print()
 
 # Get AndroidManifest.xml services
 def getManifestServices(androidManifest):
@@ -351,6 +362,7 @@ def getPlatformBuildVersionName(manifestTag):
 
 # Get AndroidManifest.xml features used
 def getUsesFeatures(androidManifest):
+
     usesFeatures = dict()
     unknownFeatures = list()
     unknownFeaturesFound = False
