@@ -7,40 +7,38 @@ import zipfile
 # main
 def main():
     while True:
-        staticMenu()
-        menuChoice = input("\nSelect choice: ")
-        menuChoice = int(menuChoice)
-        
-        # Exit application
-        if menuChoice == 0:
-            print("Exiting.")
-            exit(0)
-        
-        # Display available apks
-        elif menuChoice == 1:
-            displayAvailableApks()
+        staticMenuOption = staticMenu()
 
-        # Decompile APK
-        elif menuChoice == 2:
-            decompileApk()
+        match staticMenuOption:
         
-        # Convert APK to JAR
-        elif menuChoice == 3:
-            apkToJar()
+            # Exit application
+            case 0:
+                print("Exiting.")
+                exit(0)
+        
+            # Display available apks
+            case 1:
+                displayAvailableApks()
 
-        # Scan decompiled APK
-        elif menuChoice == 4:
-            analyzeAndroidApk()
+            # Decompile APK
+            case 2:
+                decompileApk()
         
-        # Return to main menu
-        elif menuChoice == 9:
-            break
+            # Convert APK to JAR
+            case 3:
+                apkToJar()
+
+            # Scan decompiled APK
+            case 4:
+                analyzeAndroidApk()
         
-        # Invalid user selection
-        else:
-            print("Invalid Selected\n")
-        # if
-    # menu
+            # Return to main menu
+            case 9:
+                break
+        
+            # Invalid user selection
+            case default:
+                print("Invalid Selected\n")
 
 # Static analysis menu
 def staticMenu():
@@ -48,9 +46,12 @@ def staticMenu():
     print(" 1 - Display Available APK files")
     print(" 2 - Decompile APK")
     print(" 3 - APK to JAR") 
-    print(" 4 - Scan Decompiled APK") 
+    print(" 4 - Analyze APK") 
     print(" 9 - Return to main")
     print(" 0 - Exit app")
+
+    menuChoice = input("\nSelect choice: ")
+    return int(menuChoice)
 
 # Display available APKS
 def displayAvailableApks():
@@ -63,6 +64,7 @@ def displayAvailableApks():
     
     if not apks:
         print("No apks found")
+    
     else:
         print("\nAvaiable APKs")
         cnt = 1
@@ -144,6 +146,19 @@ def analyzeAndroidApk():
     APK_MANIFEST_PATH = "Output/Decompiled/" + apkChoice + "/AndroidManifest.xml"
     ANALYSIS_DIR_PATH = "Output/Analysis/" + apkChoice
     print(APK_MANIFEST_PATH)
+    userChoice = analyzeApkMenu()
+
+def analyzeApkMenu():
+    print(" 1 - Meta Data")
+    print(" 2 - Permissions")
+    print(" 3 - Uses-Features")
+    print(" 4 - Services")
+    print(" 5 - Log Results")
+    print(" 9 - Return")
+    print(" 0 - Exit")
+
+    menuChoice = input("\nSelect choice: ")
+    return int(menuChoice)
 
 # Get permissions
 def analyzePermissions(androidManifest):
@@ -472,6 +487,7 @@ def createManifestAnalysisLog(APK_NAME, ANDROID_MANIFEST_PATH):
     for i in services:
         log.write(i + "\n")
 
+# Read AndroidManifest.xml
 def readAndroidManifest(ANDROID_MANIFEST_PATH):
     try:
         f = open(ANDROID_MANIFEST_PATH, "r")
