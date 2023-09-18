@@ -25,7 +25,7 @@ def main():
         elif staticMenuOption == 4: # Scan decompiled APK
                 analyzeAndroidApk()
         
-        elif staticMenuOption == 9: # Return to main menu
+        elif staticMenuOption == 5: # Return to main menu
                 break
         
         else:
@@ -38,7 +38,7 @@ def staticMenu():
     print(" 2 - Decompile APK")
     print(" 3 - APK to JAR") 
     print(" 4 - Analyze APK") 
-    print(" 9 - Return to main")
+    print(" 5 - Return to main")
     print(" 0 - Exit app")
 
     menuChoice = input("\nSelect choice: ")

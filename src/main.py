@@ -1,5 +1,5 @@
 # main.py
-# Main app driver for havasu
+# Main application driver for havasu
 
 import havasu
 
@@ -22,10 +22,6 @@ def main():
             havasu.staticAnalysis()
         
         elif menuChoice == 3:
-            print("Check Hash\n")
-            havasu.checkHash()
-        
-        elif menuChoice == 4:
             print("About Application\n")
             havasu.about()
         
@@ -35,14 +31,15 @@ def main():
     # menu
 # main
 
+# Menu Choices
 def menuChoices():
     print("\nMain Menu")
     print(" 1 - Access Database")
-    print(" 2 - Static Analysis")
-    print(" 3 - Check Hash")
-    print(" 4 - About Application")
+    print(" 2 - Check Hash")
+    print(" 3 - About Application")
     print(" 0 - Exit\n")
 
+# run app
 if __name__ == "__main__":
-   main() # run app
+   main()
 # if
