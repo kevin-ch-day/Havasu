@@ -9,11 +9,13 @@ __version__ = "1.0.1" # verion number
 # main
 def main():
     print("*~*~*~* Havasu *~*~*~*")
+    
     while True:
         menuChoices()
         menuChoice = input("Select choice: ")
         menuChoice = int(menuChoice)
-        if menuChoice == 0:
+
+        if menuChoice == 0: # Exit Application
             print("Exiting.")
             exit(0)
         
@@ -21,33 +23,37 @@ def main():
             print("Static Analysis\n")
             static.main()
         
-        elif menuChoice == 2: # Access database
-            print("Access Database\n")
+        elif menuChoice == 2: # APK Data Analysis
+            print("APK Data Analysis\n")
             server.main()
 
         elif menuChoice == 3: # About
-            print("Havasu Version: " + __version__)
-            print("A tool for analyzing Android APK files")
+            about()
 
         elif menuChoice == 4: # Help
-            print("Help")
+            help()
         
         else:
             print("Invalid Selected\n")
-        # if
-    # menu
-# main
 
 # Menu Choices
 def menuChoices():
     print("\nMain Menu")
-    print(" 1 - Access Database")
-    print(" 2 - Static Analyis")
+    print(" 1 - Static Analysis")
+    print(" 2 - APK Data Analysis")
     print(" 3 - About")
     print(" 4 - Help")
     print(" 0 - Exit\n")
 
+# about
+def about():
+    print("Havasu Version: " + __version__)
+    print("A tool for analyzing Android APK files")
+
+# help
+def help():
+    print("Help")
+
 # run app
 if __name__ == "__main__":
    main()
-# if
