@@ -5,7 +5,7 @@ import utils
 # main
 def main():
     while True:
-        menu()
+        mainMenu()
         menuChoice = input("Enter choice: ")
         
         if menuChoice == 0: # Exit application
@@ -28,9 +28,6 @@ def main():
         elif menuChoice == 5: # Mitre Attack Data
             mitreAttackData()
 
-        elif menuChoice == 6: # MobSF Data
-            mobSFData()
-
         elif menuChoice == 7: # Main menu
             return
         
@@ -38,14 +35,13 @@ def main():
             print("Invalid menu selection.")
 
 # menu
-def menu():
+def mainMenu():
     print("1 - Check Hash")
     print("2 - Record Sample Data")
     print("3 - Generate Sample Data")
     print("4 - Permission Data")
     print("5 - Mitre Att&ck Data")
-    print("6 - MobSF Data")
-    print("7 - Main Menu")
+    print("6 - Main Menu")
     print("0 - Exit")
 
 # Record Apk Permissions
@@ -78,32 +74,19 @@ def recordSamplePermissions():
             # no record for sample id exists
             createPermissionRecord(sample_id)
 
-def createPermissionRecord(sample_id):
-    # create sample id record
-    utils.createSampleIdPermissionRecord(sample_id)
-    sample_permissions = utils.readDetectedPermissionsInput()
-    sample_permissions.sort()
-    utils.recordSampleIdPermissions(sample_id, sample_permissions)
-
 def recordSampleData():
-    print("1 - Sample data")
-    print("2 - Permissions data")
-    print("3 - Mitre Att&ck data")
-    print("4 - MobSF data")
-    print("5 - Exit")
-    
-    # record sample data
-    # record sample permissions
-    # record sample mitre data
-    # record sample mobSF data
-    pass
+    print()
 
-def generateSampleData():
-    # generate sample data
-    # generate sample permission mitre
-    # generate sample mitre data
-    # generate sample mobSF data
-    pass
+def createPermissionRecord(id):
+    # create sample id record
+    utils.createSampleIdPermissionRecord(id)
+
+    # get detected apk permissions
+    permissions = utils.readDetectedPermissionsInput()
+    permissions.sort()
+    
+    # record sample permissions
+    utils.recordSamplePermissions(id, permissions)
 
 def permissionData():
     pass

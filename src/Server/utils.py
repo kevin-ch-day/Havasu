@@ -262,60 +262,6 @@ def populateMitreMatrixTable():
             sql = "UPDATE mitre_matrix SET `" + key + "` = 'X' WHERE trojan_id = " + str(index)
             db.executeSQL(sql)
 
-# Generate LatTeX Charts
-def generateLaTexCharts(family):
-    sql = "SELECT ID, "
-    sql = sql + "Kaspersky_Label Kaspersky, "
-    sql = sql + "HybridAnalysis_Label HybridAnalysis, "
-    sql = sql + "VirusTotal_DetectionRatio, "
-    sql = sql + "HybridAnalysis_AV_Detection "
-    sql = sql + "FROM malware_samples "
-    sql = sql + "WHERE family = '" + family + "' order by id"
-
-    results = db.queryData(sql)
-    displayLaTeXCharts(results, "\nDataset Labels\n")
-
-    sql = "SELECT y.id, y.security_score score, y.grade, "
-    sql = sql + "y.trackers_detections tracker, y.high_risks, y.medium_risks "
-    sql = sql + "FROM malware_samples x JOIN mobfs_analysis y ON y.id = x.id "
-    sql = sql + "where x.family = '" + family + "' order by x.id"
-
-    results = db.queryData(sql)
-    displayLaTeXCharts(results, "\nMobSF Security Score\n")
-
-    sql = "select x.id, "
-    sql = sql + "x.size, "
-    sql = sql + "x.Target_SDK, x.Minimum_SDK,"
-    sql = sql + "y.activities, "
-    sql = sql + "y.services, "
-    sql = sql + "y.receivers, "
-    sql = sql + "y.providers "
-    sql = sql + "from malware_samples x "
-    sql = sql + "join mobfs_analysis y "
-    sql = sql + "on y.id = x.id "
-    sql = sql + "where x.family = '" + family + "' "
-    sql = sql + "order by x.id "
-
-    results = db.queryData(sql)
-    displayLaTeXCharts(results, "\nStatic Analysis\n")
-
-# Display LaTeX Charts
-def displayLaTeXCharts(results, chartTitle):
-    print(chartTitle)
-    for row in results:
-        buff = ""
-        cnt = 0
-        for element in row:
-            if cnt == (len(row) - 1):
-                buff = buff + str(element) + " \\\\"
-            else:
-                buff = buff + str(element) + " & "
-            # if
-            cnt = cnt + 1 # increment
-        # for
-        print(buff)
-    # for
-
 # Generate sample data by ids to .xlsx file
 def outputMalwareRecordsById(ids):
     FILE_PATH = "Output\\Output-Excel.xlsx"
