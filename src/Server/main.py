@@ -56,34 +56,42 @@ def recordSamplePermissions():
         print("Error: permission input does not exists")
     
     else:
-    
+        # prompt user for sample id
         sample_id = input("Enter sample id: ")
 
         # check if records exists for sample id
-        if utils.checkSamplePermissionRecord(sample_id):
+        if utils.checkSamplePermissionIdRecords(sample_id):
+
+            # record exists for sample id
             print("Record exist for sample: " + str(sample_id))
             userChoice = input("Overwrite records for sample? (y/n) ")
             
             if userChoice.lower() == "y":
                 # delete sample id permission records
                 utils.deleteSampleRecords(sample_id)
-                
+                createPermissionRecord(sample_id)
+
             elif userChoice.lower() == "n":
                 return None
-                
-            else:
-                print("Invalid choice.")
-                return None
+            
         else:
-        
-            # create sample id record
-            utils.createSampleIdPermissionRecord(sample_id)
-            sample_permissions = utils.readDetectedPermissionsInput()
-            sample_permissions.sort()
-            utils.recordSampleIdPermissions(sample_id, sample_permissions)
+            # no record for sample id exists
+            createPermissionRecord(sample_id)
 
+def createPermissionRecord(sample_id):
+    # create sample id record
+    utils.createSampleIdPermissionRecord(sample_id)
+    sample_permissions = utils.readDetectedPermissionsInput()
+    sample_permissions.sort()
+    utils.recordSampleIdPermissions(sample_id, sample_permissions)
 
 def recordSampleData():
+    print("1 - Sample data")
+    print("2 - Permissions data")
+    print("3 - Mitre Att&ck data")
+    print("4 - MobSF data")
+    print("5 - Exit")
+    
     # record sample data
     # record sample permissions
     # record sample mitre data

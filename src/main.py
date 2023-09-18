@@ -1,7 +1,10 @@
 # main.py
 # Main application driver for havasu
 
-import havasu
+from Analysis import static
+from Server import main as server
+
+__version__ = "1.0.1" # verion number
 
 # main
 def main():
@@ -14,16 +17,20 @@ def main():
             print("Exiting.")
             exit(0)
         
-        elif menuChoice == 1:
-            print("Access Database\n")
-            havasu.accessDatabase()
-
-        elif menuChoice == 2:
-            havasu.staticAnalysis()
+        elif menuChoice == 1: # Static analysis
+            print("Static Analysis\n")
+            static.main()
         
-        elif menuChoice == 3:
-            print("About Application\n")
-            havasu.about()
+        elif menuChoice == 2: # Access database
+            print("Access Database\n")
+            server.main()
+
+        elif menuChoice == 3: # About
+            print("Havasu Version: " + __version__)
+            print("A tool for analyzing Android APK files")
+
+        elif menuChoice == 4: # Help
+            print("Help")
         
         else:
             print("Invalid Selected\n")
@@ -35,8 +42,9 @@ def main():
 def menuChoices():
     print("\nMain Menu")
     print(" 1 - Access Database")
-    print(" 2 - Check Hash")
-    print(" 3 - About Application")
+    print(" 2 - Static Analyis")
+    print(" 3 - About")
+    print(" 4 - Help")
     print(" 0 - Exit\n")
 
 # run app
