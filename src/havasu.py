@@ -1,18 +1,13 @@
 # havasu.py
 
 from Analysis import static
-import Server
+from Server import database
 
 __version__ = "1.0.1" # verion number
 
 # prompts user to enter a hash to search for
 def checkHash():
-    hash = input("Enter hash: ")
-    if not hash:
-        print("No hash entered.")
-    else:
-        Server.checkHash(hash)
-    # if
+    database.checkHash()
 
 def about():
     print("Havasu Version: " + __version__)
