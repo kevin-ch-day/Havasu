@@ -51,10 +51,10 @@ def recordSampleData():
     while True:
         print("\nRecord Sample Data")
         print("----------------------------")
-        print("1 - Create sample record")
-        print("2 - Record permission data")
-        print("3 - Record mitre att&ck data")
-        print("4 - Return to data menu")
+        print(" 1 - Create sample record")
+        print(" 2 - Record permission data")
+        print(" 3 - Record mitre att&ck data")
+        print(" 4 - Return to data menu")
 
         choice = input("\nEnter choice: ")
         if choice == "1": # create sample record
@@ -65,10 +65,13 @@ def recordSampleData():
             pass
         
         elif choice == "3": # record mitre att&ck data
-            pass
+            recordMitreData()
 
         elif choice == "4": # return to menu
             return
+        
+def recordMitreData():
+    utils.readMitreData()
 
 # Record Apk Permissions
 def recordSamplePermissions():
@@ -79,24 +82,25 @@ def recordSamplePermissions():
         return
     
     else:
+        # prompt user for sample id
         sample_id = input("Enter sample id: ")
 
+        # check if permission records exists for sample id
         if utils.checkSamplePermissionIdRecords(sample_id):
-
             print("\nRecord exist for sample: " + str(sample_id))
             userChoice = input("Overwrite records for sample? (y/n): ")
             
+            # delete sample id permission records
             if userChoice.lower() == "y":
-
-                # delete sample id permission records
                 utils.deleteSampleRecords(sample_id)
                 createPermissionRecord(sample_id)
 
+            # dont delete records, exit
             elif userChoice.lower() == "n":
                 return None
             
+        # no record for sample id exists   
         else:
-            # no record for sample id exists
             createPermissionRecord(sample_id)
 
 def createPermissionRecord(id):

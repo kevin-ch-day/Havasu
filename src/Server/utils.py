@@ -88,38 +88,36 @@ def createSampleIdPermissionRecord(trojan_id):
 
 # Read Mitre data
 def readMitreData():
-    FILE_PATH = "Input\\MITRE-INPUT.xlsx"
-    wb = xl.load_workbook(FILE_PATH)
+    MITRE_INPUT_FILE_PATH = "..\Input\MITRE-INPUT.xlsx"
+    if not os.path.isfile(MITRE_INPUT_FILE_PATH):
+        print("[!] - Mitre Att&ck excel file not found.")
+        return
+    
+    wb = xl.load_workbook(MITRE_INPUT_FILE_PATH)
+    print("\nReading Mitre Att&ck excel data.")
 
     for i in wb.sheetnames:
-        print("Worksheet: ", i)
-        values = list()
-        df = pd.read_excel(FILE_PATH, sheet_name = i)
+        print("Sheetname: ", i)
+        df = pd.read_excel(MITRE_INPUT_FILE_PATH, sheet_name = i)
 
         sql = "INSERT INTO mitre_detection"
         sql = sql + " (Trojan_ID, ATTACK_ID, Tactic, Description, Malicious_Indicators, "
         sql = sql + "Suspicious_Indicators, Informative_Indicators)"
         sql = sql + " VALUES (%s, %s, %s, %s, %s, %s, %s)"
 
+        values = list()
         for index, row in df.iterrows():
-            trojan_id = row[0]
-            attack_id = row[1]
+            sample_id = row[0]
+            attack = row[1]
             technique = row[2]
             tactic = row[3]
             mali = row[4]
             susp = row[5]
             info = row[6]
 
-            data = (trojan_id, attack_id, technique, tactic, mali, susp, info)
-            print(data) # DEGUGGING
+            data = (sample_id, attack, technique, tactic, mali, susp, info)
             values.append(data)
-
-            db.executeSQL(sql, values)
-            #print(cursor.rowcount, "record inserted.")
-        # for
-        
-        print() # newline
-    # for
+            db.executeSQLMany(sql, values)
 
 # read detected permission from text file
 def readDetectedPermissionsInput():

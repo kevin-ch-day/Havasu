@@ -98,6 +98,25 @@ def executeSQL(sql, values = None):
     # try
 # function
 
+# execute SQL statement
+def executeSQLMany(sql, values):
+    global cursor
+    global connection
+
+    try:
+        createConnection()
+        cursor.executemany(sql, values)
+        
+    except mysql.Error as err:
+        print("[!!] MySQL Error: {}".format(err))
+        return None
+    
+    finally:
+        connection.commit()
+        closeConnection()
+    # try
+# function
+
 def getDataFrame(sql):
     global cursor
     global connection
