@@ -1,8 +1,9 @@
-# server_utils.py
+# utils.py
 
 import pandas as pd
 import openpyxl as xl
 import database as db
+import os
 
 # Check hash against database records 
 def checkHash(hash):
@@ -33,24 +34,53 @@ def checkHash(hash):
 
     print("No matching record found.")
 
+# check if permission input txt file exists
+def checkPermissionInput():
+    fileExist = os.path.isfile("..\Input\APK_PERMISSIONS.txt")
+    return fileExist
+
+# check sample id
+def checkSamplePermissionIdRecords(id):
+    sql = "select ID from detected_standard_permissions where ID = '" + id + "'"
+    results = db.queryData(sql)
+    if results:
+        return True
+    
+    sql = "select ID from detected_unknown_permissions where ID = '" + id + "'"
+    results = db.queryData(sql)
+    if results:
+        return True
+    
+    return False
+
+def deleteSampleRecords(id):
+    # delete from table: detected_standard_permissions
+    sql = "DELETE FROM detected_standard_permissions WHERE ID = '"  + id + "'"
+    db.executeSQL(sql)
+    
+    # delete from table: detected_unknown_permissions
+    sql = "DELETE FROM detected_unknown_permissions WHERE ID = '"  + id + "'"
+    db.executeSQL(sql)
+
 # Display malware record
 def displayMalwareRecord(record):
-    print("ID:\t\t" + str(record[0]))
-    print("Name:\t\t" + record[1])
-    print("Family:\t\t" + record[2])
-    print("Size:\t\t" + record[12])
-    print("VirusTotal:\t" + record[4])
+    data = record[0]
+    print("\nID: " + str(data[0]))
+    print("Name: " + data[1])
+    print("Family: " + data[2])
+    print("Size: " + data[12])
+    print("VirusTotal: " + data[4])
 
 # check permission records
 def checkPermissionRecords(id):
     sql = "SELECT * FROM detected_standard_permissions where id = '" + id + "'"
-    results = db.runQuery(sql)
+    results = db.queryData(sql)
     if not results:
         return None
     # if
 
 # create scan record for trojan id
-def createPermissionRecord(trojan_id):
+def createSampleIdPermissionRecord(trojan_id):
     sql = "INSERT INTO detected_standard_permissions (id) VALUES (%s)"
     val = (trojan_id, )
     db.executeSQL(sql, val)
@@ -87,12 +117,13 @@ def readMitreData():
             db.executeSQL(sql, values)
             #print(cursor.rowcount, "record inserted.")
         # for
+        
         print() # newline
     # for
 
 # read detected permission from text file
-def readDetectedPermissions():
-    PERMISSIONS_INPUT_PATH = "Input\\APK_PERMISSIONS.txt"
+def readDetectedPermissionsInput():
+    PERMISSIONS_INPUT_PATH = "..\Input\APK_PERMISSIONS.txt"
     fPermissions = open(PERMISSIONS_INPUT_PATH, "r")
     permissions = list()
     for index in fPermissions:
@@ -104,47 +135,46 @@ def readDetectedPermissions():
 def getStandardAndroidPermissionList():
     permissions = list()
 
-    results = db.runQuery("show columns from detected_standard_permissions")
+    results = db.queryData("show columns from detected_standard_permissions")
     if not results:
         print("[!!] - No permission columns retrieved from database.")
         exit()
-    # if
     
     for i in results:
         if 'ID' == i[0]:
             pass
         else:
             permissions.append(i[0])
-    # for
+
     return permissions
 
 # Record Android permissions
 def recordAndroidPermissions(trojan, permissions):
     updatedColumns = 0
     unknownPermissions = list()
-    standardPermissionList = getStandardAndroidPermissionList()
+    standardPermissions = getStandardAndroidPermissionList()
     FORMAT_HEADER = len("android.permission.")
 
     for index in permissions:
-        slicedPermissions = index[FORMAT_HEADER:]
+        permission = index[FORMAT_HEADER:]
 
-        if slicedPermissions not in standardPermissionList:
+        if permission not in standardPermissions:
             print("Unknown Permission: " + index)
-            unknownPermissions.append(slicedPermissions)
+            unknownPermissions.append(permission)
             #print(slicedPermissions) # DEBUGGING
 
         # if permission does not exists within table
         else:
             sql = "UPDATE detected_standard_permissions SET "
-            sql = sql + slicedPermissions + " = 'X' WHERE id = " + str(trojan)
+            sql = sql + permission + " = 'X' WHERE id = " + str(trojan)
             db.executeSQL(sql)
             updatedColumns = updatedColumns + 1
         # if
     # for
 
-    print("\n** Standard permission columns **")
     print(str(updatedColumns) + " columns updated.")
-    recordNonStandardPermissions(trojan, unknownPermissions)
+    if len(unknownPermissions) != 0:
+        recordNonStandardPermissions(trojan, unknownPermissions)
 
 # Load Mitre data
 def loadMitreData():
@@ -161,7 +191,6 @@ def loadMitreData():
     for index, row in df.iterrows():
         data = row[0] + " " + row[1]
         columns.add(data)
-    # for
 
     return sorted(columns)
 
@@ -178,7 +207,6 @@ def getMitreDict():
     print("---------------") # newline
     for k in dict:
         print(k)
-    # for
     print() # newline
 
     sql = "select description, ATTACK_ID, trojan_id"
@@ -323,7 +351,7 @@ def outputNormalPermissions(sample_set):
     EXCEL_FILE_PATH = 'Ouput\\Normal-Permissions.xlsx'
 
     sql = "select name from android_permissions where Protection_level = 'Normal' order by name"
-    results = db.runQuery(sql)
+    results = db.queryData(sql)
     normalPermissionsColumns = "'" # start sql columns
     buff = list()
     cnt = 0
@@ -337,28 +365,22 @@ def outputNormalPermissions(sample_set):
         else:
             normalPermissionsColumns = "'" + normalPermissionsColumns + x[0] + "', " # append column
             #print(cnt, x[0])
-        # if
 
         buff.append(x[0])
         cnt = cnt + 1
-    # for
 
     ## ADD COLUMN CHECKING
     sql = "SHOW COLUMNS FROM detected_standard_permissions"
-    results = db.runQuery(sql)
+    results = db.queryData(sql)
     detectedPermissions = list()
     for i in results:
         if(i[0] != "ID"):
             detectedPermissions.append(i[0])
-        # if
-    # for
 
     missingPermissions = list()
     for index in buff:
         if index not in detectedPermissions:
             missingPermissions.append(index.upper())
-        # if
-    # for
 
     if missingPermissions:
         print("Missing Permissions: ")
@@ -387,38 +409,35 @@ def outputNormalPermissions(sample_set):
     df_beta.to_excel(EXCEL_FILE_PATH)
 
 # Classify detected permissions
-def classifyPermissions(trojan, permissions):
+def recordSamplePermissions(sample_id, permissions):
     standardFormatPerms = list()
     unknownPermissions = list()
     unknownPermissionsFound = False
 
     for index in permissions:
+
         # check if permission matches the standard permission formatted
         if "android.permission." in index:
-            #print(index) # DEBUGGING
             standardFormatPerms.append(index)
         else:
             unknownPermissions.append(index)
             unknownPermissionsFound = True
-        # if
-    # for
+
+    recordAndroidPermissions(sample_id, standardFormatPerms)
+    print("\nStandard Permissions found: ", len(standardFormatPerms))
 
     if unknownPermissionsFound:
-        fUnknownPermissions = open("Output\\"+str(trojan)+"-UnknownPerms.txt", "w")
+        RECORD_UNKNOWN_PERMS_PATH = "..\Output\\"+str(sample_id)+"-UnknownPerms.txt"
+        fUnknownPermissions = open(RECORD_UNKNOWN_PERMS_PATH, "w")
         try:
             for i in unknownPermissions:
-                #print(index) # DEBUGGING
                 fUnknownPermissions.write(i + "\n")
+
         except IOError as e:
             print("I/O error({0}): {1}".format(e.errno, e.strerror))
             exit()
-        # try
-    # if
 
-    print("Unknown Permissions found: ", len(unknownPermissions))
-    recordAndroidPermissions(trojan, standardFormatPerms)
-    print("\nStandard Permissions found: ", len(standardFormatPerms))
-
+    print("\nUnknown Permissions found: ", len(unknownPermissions))
 
 # Record non-standard permissions
 def recordNonStandardPermissions(trojan, unknownPermissions):
@@ -426,7 +445,7 @@ def recordNonStandardPermissions(trojan, unknownPermissions):
     addedCols = updatedCols = 0
 
     sql = "show columns from detected_unknown_permissions"
-    results = db.runQuery(sql)
+    results = db.queryData(sql)
     if not results:
         print("[!!] - No columns retrieved from: unknown_permissions")
         exit()
@@ -443,7 +462,7 @@ def recordNonStandardPermissions(trojan, unknownPermissions):
     values = (trojan, )
     db.executeSQL(sql, values)
 
-    print("\n** Detected unknown permissions columns **")
+    print("\nUnknown permissions")
     for index in unknownPermissions:
         if index not in dbCols:
             print("Adding new column to database: ", index)
@@ -453,10 +472,8 @@ def recordNonStandardPermissions(trojan, unknownPermissions):
         # update column with permission record
         sql = "update detected_unknown_permissions set " + index + " = 'X' where id = " + str(trojan)
         db.executeSQL(sql)
-    # for
 
-    print(str(addedCols) + " columns added.")
-    print(str(updatedCols) + " columns updated.\n")
+    print("Columns added: " + str(addedCols) + " updated: " + str(updatedCols))
 
 # Generate mitre matrix
 def generateMitreMatrix(sample_set):

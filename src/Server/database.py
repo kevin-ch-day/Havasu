@@ -16,7 +16,7 @@ def createConnection():
     # configuration
     SERVER = "localhost"
     USERNAME = "root"
-    DATABASE = "capstone_dev"
+    DATABASE = "havasu_dev"
     PASSWORD = ""
     PORT = 3306
 
