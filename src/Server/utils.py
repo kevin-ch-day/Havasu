@@ -123,6 +123,7 @@ def readMitreData():
 def readDetectedPermissionsInput():
     PERMISSIONS_INPUT_PATH = "..\Input\APK_PERMISSIONS.txt"
     fPermissions = open(PERMISSIONS_INPUT_PATH, "r")
+    
     permissions = list()
     for index in fPermissions:
         permissions.append(index.strip())
@@ -176,7 +177,6 @@ def recordAndroidPermissions(trojan, permissions):
 
 # Load Mitre data
 def loadMitreData():
-    print("loadMitreData()") # DEBUGGING
     
     columns = set() # empty set
 
@@ -194,7 +194,6 @@ def loadMitreData():
 
 # Mitre data dictionary
 def getMitreDict():
-    print("getMitreDict()") # DEBUGGING
 
     dict = dict()  
     for i in loadMitreData():
@@ -237,32 +236,29 @@ def getMitreMatrixColumns():
     return cols.tolist()
 
 # Get sample ids
-def getSampleIds():
-    print("getSampleIds()") # DEBUGGING
+def getMitreSampleIds():
+    ids = list()
 
     sql = "select DISTINCT trojan_id from mitre_detection"
     df = db.pandasDataFrame(sql)
     
-    sampleIds = list()
     for i in df.loc[:, 'trojan_id']:
-        sampleIds.append(i)
-    # for
-    sampleIds.sort()
-    return sampleIds
+        ids.append(i)
+
+    ids.sort()
+    return ids
 
 # Add ids mitra matrix
 def addIdsMitreMatrix():
-    print("addIdsMitreMatrix()") # DEBUGGING
-
-    samples = getSampleIds()
+    samples = getMitreSampleIds()
     for index in samples:
         sql = "select * from mitre_matrix where trojan_id = " + str(index)
         df = db.pandasDataFrame(sql)
+
         if df.empty:
             sql = "insert into mitre_matrix (trojan_id) value (%s)"
             db.executeSQL(sql, (str(index),))
             print("Added sample id: " + str(index))
-    print() # newline
 
 # Populate mitre matrix table
 def populateMitreMatrixTable():
@@ -290,21 +286,21 @@ def populateMitreMatrixTable():
 
 # Generate sample data by ids to .xlsx file
 def outputMalwareRecordsById(ids):
-    FILE_PATH = "Output\\Output-Excel.xlsx"
+    FILE_PATH = "..\Output\Output-Excel.xlsx"
     sql = "SELECT * FROM mobfs_analysis WHERE id in " + ids
     df = db.pandasDataFrame(sql)
     df.to_excel(FILE_PATH)
 
 # Generate sample data by family to .xlsx file
 def outputMalwareRecordsByFamily(database, family):
-    FILE_PATH = "Output\\Output-Excel.xlsx"
+    FILE_PATH = "..\Output\Output-Excel.xlsx"
     sql = "SELECT * FROM malware_samples WHERE family = '" + family + "'"        
     df = db.pandasDataFrame(sql)
     df.to_excel(FILE_PATH)
 
 # Standard Permissions
 def outputStandardPermissions(sample_set):
-    EXCEL_FILE_PATH = 'Output\\Android-Permissions.xlsx'
+    EXCEL_FILE_PATH = '..\Output\Android-Permissions.xlsx'
     
     sql = "select * from detected_standard_permissions "
     sql = sql + " where id in " + str(sample_set)
@@ -325,7 +321,7 @@ def outputStandardPermissions(sample_set):
 
 # Unknown Permissions
 def outputUnknownPermissions(sample_set):
-    EXCEL_FILE_PATH = 'Output\\Unknown-Permissions.xlsx'
+    EXCEL_FILE_PATH = '..\Output\Unknown-Permissions.xlsx'
 
     sql = "select * from detected_unknown_permissions "
     sql = sql + " where id in " + sample_set
@@ -346,7 +342,7 @@ def outputUnknownPermissions(sample_set):
 
 # Normal Permissions
 def outputNormalPermissions(sample_set):
-    EXCEL_FILE_PATH = 'Ouput\\Normal-Permissions.xlsx'
+    EXCEL_FILE_PATH = '..\Ouput\Normal-Permissions.xlsx'
 
     sql = "select name from android_permissions where Protection_level = 'Normal' order by name"
     results = db.queryData(sql)
@@ -475,7 +471,7 @@ def recordNonStandardPermissions(trojan, unknownPermissions):
 
 # Generate mitre matrix
 def generateMitreMatrix(sample_set):
-    EXCEL_FILE_PATH = 'Output\\Mitre-Matrix.xlsx'
+    EXCEL_FILE_PATH = '..\Output\Mitre-Matrix.xlsx'
     
     sql = "select * from mitre_matrix "
     sql = sql + " where trojan_id in " + sample_set
@@ -496,4 +492,5 @@ def generateMitreMatrix(sample_set):
             if cell is not None:
                 df_beta[index] = df_alpha[index]
                 break
+    
     df_beta.to_excel(EXCEL_FILE_PATH)

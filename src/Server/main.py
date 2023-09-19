@@ -16,12 +16,11 @@ def main():
             hash = input("Enter hash: ")
             utils.checkHash(hash)
 
-        elif menuChoice == "2": # Record Sample Data
-            recordSampleData()
+        elif menuChoice == "2": # Record Data
+            recordData()
 
-        elif menuChoice == "3": # Generate Sample Data
-            # generateSampleData()
-            print("generateSampleData()")
+        elif menuChoice == "3": # Generate Data
+            generateData()
 
         elif menuChoice == "4": # Permission Data
             permissionData()
@@ -38,7 +37,7 @@ def main():
 # menu
 def mainMenu():
     print("\nData Menu")
-    print("------------------------")
+    print("----------------------------")
     print(" 1 - Check Hash")
     print(" 2 - Record Sample Data")
     print(" 3 - Generate Sample Data")
@@ -47,7 +46,7 @@ def mainMenu():
     print(" 6 - Main Menu")
     print(" 0 - Exit")
 
-def recordSampleData():
+def recordData():
     while True:
         print("\nRecord Sample Data")
         print("----------------------------")
@@ -114,10 +113,36 @@ def createPermissionRecord(id):
     # record sample permissions
     utils.recordSamplePermissions(id, permissions)
 
+def generateData():
+    while True:
+        print("\nGenerate Data")
+        print("----------------------------")
+        print(" 1 - Sample/family data")
+        print(" 2 - Permission data")
+        print(" 3 - Mitre Att&ck data")
+        print(" 4 - Menu return")
+
+        choice = input("\nEnter choice: ")
+        if choice == "1": # sample/family data
+            sampleData()
+
+        elif choice == "2": # permission data
+            permissionData()
+            pass
+        
+        elif choice == "3": # mitre att&ck data
+            mitreAttackData()
+
+        elif choice == "4": # return to menu
+            return
+
+def sampleData():
+    pass
+
 def permissionData():
     pass
 
 def mitreAttackData():
-    pass
+    utils.populateMitreMatrixTable()
 
 main()
