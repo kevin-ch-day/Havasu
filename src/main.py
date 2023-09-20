@@ -2,7 +2,7 @@
 # Main application driver for havasu
 
 from Analysis import static
-from Server import main as server
+from Server import dataAnalysis as server
 
 __version__ = "1.0.1" # verion number
 
