@@ -3,46 +3,43 @@
 import mysql.connector as mysql
 import pandas as pd
 
-# GLOBALS
 connection = None
 cursor = None
 
+
 # create database connection
-def createConnection():
+def create_connection():
     """ Connect to MySQL database """
     global connection
     global cursor
 
     # configuration
-    SERVER = "localhost"
-    USERNAME = "root"
-    DATABASE = "havasu_dev"
-    PASSWORD = ""
-    PORT = 3306
+    server = "localhost"
+    uname = "root"
+    database = "havasu_dev"
+    passwd = ""
+    port = 3306
 
     try:
         connection = mysql.connect(
-            host = SERVER,
-            user = USERNAME,
-            password = PASSWORD,
-            database = DATABASE,
-            port = PORT)
+            host=server,
+            user=uname,
+            password=passwd,
+            database=database,
+            port=port)
 
         if not connection.is_connected():
             print("Error: cannot connected to database.\n")
             exit()
-        # if
 
         cursor = connection.cursor()
 
     except Exception as exp:
         print("[!!]- Error creating database connection")
         print(str(exp))
-    # try
-# function
 
 # close database connection
-def closeConnection():
+def close_connection():
     """ Disconnect from MySQL database """
     global connection
 
@@ -51,38 +48,34 @@ def closeConnection():
     except Exception as exp:
         print("[!!] - Error ending database connection")
         print(str(exp))
-    # try
-# function
 
 # query sql statement
-def queryData(sql):
+def query_data(sql):
     global cursor
 
     try:
-        createConnection()
+        create_connection()
         cursor.execute(sql)
         results = cursor.fetchall()
         if not results:
             return None
         else:
             return results
-    
+
     except mysql.Error as err:
         print(err)
         return None
-    
+
     finally:
-        closeConnection()
-    # try
-# function
+        close_connection()
 
 # execute SQL statement
-def executeSQL(sql, values = None):
+def executeSQL(sql, values=None):
     global cursor
     global connection
 
     try:
-        createConnection()
+        create_connection()
         if not values:
             cursor.execute(sql)
         else:
@@ -91,12 +84,10 @@ def executeSQL(sql, values = None):
     except mysql.Error as err:
         print("[!!] MySQL Error: {}".format(err))
         return None
-    
+
     finally:
         connection.commit()
-        closeConnection()
-    # try
-# function
+        close_connection()
 
 # execute SQL statement
 def executeSQLMany(sql, values):
@@ -104,25 +95,23 @@ def executeSQLMany(sql, values):
     global connection
 
     try:
-        createConnection()
+        create_connection()
         cursor.executemany(sql, values)
-        
+
     except mysql.Error as err:
         print("[!!] MySQL Error: {}".format(err))
         return None
-    
+
     finally:
         connection.commit()
-        closeConnection()
-    # try
-# function
+        close_connection()
 
 def getDataFrame(sql):
     global cursor
     global connection
 
     try:
-        createConnection()
+        create_connection()
         results = pd.read_sql_query(sql, connection)
         records = pd.DataFrame(results)
 
@@ -130,15 +119,13 @@ def getDataFrame(sql):
             return None
         else:
             return records
-    
+
     except mysql.Error as err:
         print(err)
         return None
-    
+
     finally:
-        closeConnection()
-    # try
-# function
+        close_connection()
 
 # Pandas read SQL query
 def pandasReadSQL(sql):
@@ -146,19 +133,17 @@ def pandasReadSQL(sql):
     global connection
 
     try:
-        createConnection()
+        create_connection()
         results = pd.read_sql_query(sql, connection)
 
         if not results:
             return None
         else:
             return results
-    
+
     except mysql.Error as err:
         print(err)
         return None
-    
+
     finally:
-        closeConnection()
-    # try
-# function
+        close_connection()

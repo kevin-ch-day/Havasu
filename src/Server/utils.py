@@ -317,7 +317,7 @@ def outputStandardPermissions(sample_set):
 
 # Unknown Permissions
 def outputUnknownPermissions(sample_set):
-    EXCEL_FILE_PATH = '..\Output\Unknown-Permissions.xlsx'
+    EXCEL_FILE_PATH = "..\\Output\\Unknown-Permissions.xlsx"
 
     sql = "select * from detected_unknown_permissions "
     sql = sql + " where id in " + sample_set
@@ -338,7 +338,7 @@ def outputUnknownPermissions(sample_set):
 
 # Normal Permissions
 def outputNormalPermissions(sample_set):
-    EXCEL_FILE_PATH = '..\Ouput\Normal-Permissions.xlsx'
+    EXCEL_FILE_PATH = "..\\Ouput\\Normal-Permissions.xlsx"
 
     sql = "select name from android_permissions where Protection_level = 'Normal' order by name"
     results = db.queryData(sql)

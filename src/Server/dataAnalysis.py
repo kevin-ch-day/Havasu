@@ -1,7 +1,6 @@
 # main.py
 
 import utils
-import os
 
 # main
 def main():
