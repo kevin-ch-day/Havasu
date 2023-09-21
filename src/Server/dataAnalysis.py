@@ -128,7 +128,6 @@ def generateData():
 
         elif choice == "2": # permission data
             permissionData()
-            pass
         
         elif choice == "3": # mitre att&ck data
             mitreAttackData()
