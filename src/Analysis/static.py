@@ -5,7 +5,7 @@ import datetime
 import zipfile
 
 # main
-def main():
+def run():
     while True:
         staticMenuOption = staticMenu()
 

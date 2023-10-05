@@ -2,7 +2,7 @@
 from .utils import *
 
 # main
-def main():
+def run():
     while True:
         mainMenu()
         menuChoice = input("\nEnter choice: ")      
@@ -141,5 +141,3 @@ def permissionData():
 
 def mitreAttackData():
     populateMitreMatrixTable()
-
-main()

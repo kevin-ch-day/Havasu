@@ -21,11 +21,11 @@ def main():
         
         elif menuChoice == 1: # Static analysis
             print("Static Analysis\n")
-            static.main()
+            static.run()
         
         elif menuChoice == 2: # APK Data Analysis
             print("APK Data Analysis\n")
-            server.main()
+            server.run()
 
         elif menuChoice == 3: # About
             about()
