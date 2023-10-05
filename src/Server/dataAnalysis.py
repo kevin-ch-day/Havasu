@@ -1,5 +1,6 @@
 # main.py
 from .utils import *
+import os
 
 # main
 def run():
@@ -55,11 +56,10 @@ def recordData():
 
         choice = input("\nEnter choice: ")
         if choice == "1": # create sample record
-            pass
+            createSampleRecord()
         
         elif choice == "2": # record permission data
             recordSamplePermissions()
-            pass
         
         elif choice == "3": # record mitre att&ck data
             recordMitreData()
@@ -99,6 +99,45 @@ def recordSamplePermissions():
         # no record for sample id exists   
         else:
             createPermissionRecord(sample_id)
+
+# check if sample id record exists in permission tables
+def checkSampleIdRecord(sample_id):
+    recordExists = False
+
+    # check detected_standard_permissions table
+    sql = "select id from malware_samples where id = '" + sample_id + "'"
+    results = query_data(sql)
+    if results[0][0]:
+        recordExists = True
+
+    return recordExists
+
+# check if sample id record exists in permission tables
+def checkSamplePermissionIdRecord(sample_id):
+    recordExists = False
+
+    # check detected_standard_permissions table
+    sql = "select id from detected_standard_permissions where id = '" + sample_id + "'"
+    results = query_data(sql)
+    if results[0][0]:
+        recordExists = True
+    
+    # check detected_unknown_permissions table
+    sql = "select id from detected_unknown_permissions where id = '" + sample_id + "'"
+    results = query_data(sql)
+    if results[0][0]:
+        recordExists = True
+
+    return recordExists
+    
+def createSampleRecord():
+    pass
+
+# check if permission input file exists
+def checkPermissionInput():
+    permissionInputPath = "Input\APK_PERMISSIONS.txt"
+    result = os.path.isfile(permissionInputPath)
+    return result
 
 def createPermissionRecord(id):
     # create sample id record
