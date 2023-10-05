@@ -106,7 +106,7 @@ def executeSQLMany(sql, values):
         connection.commit()
         close_connection()
 
-def getDataFrame(sql):
+def generate_dataframe(sql):
     global cursor
     global connection
 
@@ -128,7 +128,7 @@ def getDataFrame(sql):
         close_connection()
 
 # Pandas read SQL query
-def pandasReadSQL(sql):
+def pandasReadSqlQuery(sql):
     global cursor
     global connection
 

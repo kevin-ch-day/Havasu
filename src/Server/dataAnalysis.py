@@ -1,6 +1,5 @@
 # main.py
-
-import utils
+from .utils import *
 
 # main
 def main():
@@ -13,7 +12,7 @@ def main():
 
         elif menuChoice == "1": # chech hash
             hash = input("Enter hash: ")
-            utils.checkHash(hash)
+            checkHash(hash)
 
         elif menuChoice == "2": # Record Data
             recordData()
@@ -69,13 +68,13 @@ def recordData():
             return
         
 def recordMitreData():
-    utils.readMitreData()
+    readMitreData()
 
 # Record Apk Permissions
 def recordSamplePermissions():
 
 	# check if permission input file exists
-    if not utils.checkPermissionInput():
+    if not checkPermissionInput():
         print("Error: permission input does not exists")
         return
     
@@ -84,13 +83,13 @@ def recordSamplePermissions():
         sample_id = input("Enter sample id: ")
 
         # check if permission records exists for sample id
-        if utils.checkSamplePermissionIdRecords(sample_id):
+        if checkSamplePermissionIdRecords(sample_id):
             print("\nRecord exist for sample: " + str(sample_id))
             userChoice = input("Overwrite records for sample? (y/n): ")
             
             # delete sample id permission records
             if userChoice.lower() == "y":
-                utils.deleteSampleRecords(sample_id)
+                deleteSampleRecords(sample_id)
                 createPermissionRecord(sample_id)
 
             # dont delete records, exit
@@ -103,14 +102,14 @@ def recordSamplePermissions():
 
 def createPermissionRecord(id):
     # create sample id record
-    utils.createSampleIdPermissionRecord(id)
+    createSampleIdPermissionRecord(id)
 
     # get detected apk permissions
-    permissions = utils.readDetectedPermissionsInput()
+    permissions = readDetectedPermissionsInput()
     permissions.sort()
     
     # record sample permissions
-    utils.recordSamplePermissions(id, permissions)
+    recordSamplePermissions(id, permissions)
 
 def generateData():
     while True:
@@ -141,6 +140,6 @@ def permissionData():
     pass
 
 def mitreAttackData():
-    utils.populateMitreMatrixTable()
+    populateMitreMatrixTable()
 
 main()
