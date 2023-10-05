@@ -62,13 +62,10 @@ def recordData():
             recordSamplePermissions()
         
         elif choice == "3": # record mitre att&ck data
-            recordMitreData()
+            readMitreData()
 
         elif choice == "4": # return to menu
             return
-        
-def recordMitreData():
-    readMitreData()
 
 # Record Apk Permissions
 def recordSamplePermissions():
@@ -99,6 +96,15 @@ def recordSamplePermissions():
         # no record for sample id exists   
         else:
             createPermissionRecord(sample_id)
+
+def deleteSampleRecords(sample_id):
+    sql = "DELETE FROM detected_standard_permissions WHERE id = '"+sample_id+"'"
+    executeSQL(sql)
+
+    sql = "DELETE FROM detected_unknown_permissions WHERE id = '"+sample_id+"'"
+    executeSQL(sql)
+    
+    print("Sample ID: " + sample_id + " deleted.")
 
 # check if sample id record exists in permission tables
 def checkSampleIdRecord(sample_id):

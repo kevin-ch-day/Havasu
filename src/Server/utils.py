@@ -121,7 +121,7 @@ def readMitreData():
 
 # read detected permission from text file
 def readDetectedPermissionsInput():
-    PERMISSIONS_INPUT_PATH = "..\Input\APK_PERMISSIONS.txt"
+    PERMISSIONS_INPUT_PATH = "Input\APK_PERMISSIONS.txt"
     fPermissions = open(PERMISSIONS_INPUT_PATH, "r")
 
     permissions = list()
