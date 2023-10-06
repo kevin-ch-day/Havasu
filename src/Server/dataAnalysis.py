@@ -1,6 +1,8 @@
 # main.py
-from .utils import *
 import os
+
+from Server import utils
+from Server import database
 
 # main
 def run():
@@ -13,21 +15,24 @@ def run():
 
         elif menuChoice == "1": # chech hash
             hash = input("Enter hash: ")
-            checkHash(hash)
+            utils.checkHash(hash)
 
-        elif menuChoice == "2": # Record Data
+        elif menuChoice == "2": # View Data
+            viewData()
+
+        elif menuChoice == "3": # Record Data
             recordData()
 
-        elif menuChoice == "3": # Generate Data
+        elif menuChoice == "4": # Generate Data
             generateData()
 
-        elif menuChoice == "4": # Permission Data
+        elif menuChoice == "5": # Permission Data
             permissionData()
 
-        elif menuChoice == "5": # Mitre Attack Data
+        elif menuChoice == "6": # Mitre Attack Data
             mitreAttackData()
 
-        elif menuChoice == "6": # Main menu
+        elif menuChoice == "7": # Main menu
             return
         
         else:
@@ -38,11 +43,12 @@ def mainMenu():
     print("\nData Menu")
     print("----------------------------")
     print(" 1 - Check Hash")
-    print(" 2 - Record Sample Data")
-    print(" 3 - Generate Sample Data")
-    print(" 4 - Permission Data")
-    print(" 5 - Mitre Att&ck Data")
-    print(" 6 - Main Menu")
+    print(" 2 - View Data")
+    print(" 3 - Record Data")
+    print(" 4 - Generate SData")
+    print(" 5 - Permission Data")
+    print(" 6 - Mitre Att&ck Data")
+    print(" 7 - Main Menu")
     print(" 0 - Exit")
 
 def recordData():
@@ -62,10 +68,13 @@ def recordData():
             recordSamplePermissions()
         
         elif choice == "3": # record mitre att&ck data
-            readMitreData()
+            utils.readMitreData()
 
         elif choice == "4": # return to menu
             return
+
+def viewData():
+    pass
 
 # Record Apk Permissions
 def recordSamplePermissions():
@@ -80,7 +89,7 @@ def recordSamplePermissions():
         sample_id = input("Enter sample id: ")
 
         # check if permission records exists for sample id
-        if checkSamplePermissionIdRecords(sample_id):
+        if utils.checkSamplePermissionIdRecords(sample_id):
             print("\nRecord exist for sample: " + str(sample_id))
             userChoice = input("Overwrite records for sample? (y/n): ")
             
@@ -99,10 +108,10 @@ def recordSamplePermissions():
 
 def deleteSampleRecords(sample_id):
     sql = "DELETE FROM detected_standard_permissions WHERE id = '"+sample_id+"'"
-    executeSQL(sql)
+    database.executeSQL(sql)
 
     sql = "DELETE FROM detected_unknown_permissions WHERE id = '"+sample_id+"'"
-    executeSQL(sql)
+    database.executeSQL(sql)
     
     print("Sample ID: " + sample_id + " deleted.")
 
@@ -112,7 +121,7 @@ def checkSampleIdRecord(sample_id):
 
     # check detected_standard_permissions table
     sql = "select id from malware_samples where id = '" + sample_id + "'"
-    results = query_data(sql)
+    results = database.query_data(sql)
     if results[0][0]:
         recordExists = True
 
@@ -124,20 +133,41 @@ def checkSamplePermissionIdRecord(sample_id):
 
     # check detected_standard_permissions table
     sql = "select id from detected_standard_permissions where id = '" + sample_id + "'"
-    results = query_data(sql)
+    results = database.query_data(sql)
     if results[0][0]:
         recordExists = True
     
     # check detected_unknown_permissions table
     sql = "select id from detected_unknown_permissions where id = '" + sample_id + "'"
-    results = query_data(sql)
+    results = database.query_data(sql)
     if results[0][0]:
         recordExists = True
-
+ 
     return recordExists
-    
+
+# create sample record
 def createSampleRecord():
-    pass
+    # prompt user
+    name = input("Enter sample name: ")
+    family = input("Enter sample name: ")
+    md5 = input("Enter sample name: ")
+
+    if name.isnumeric():
+        print("Error: name is numeric")
+        return
+
+    if family.isnumeric():
+        print("Error: family is numeric")
+        return
+
+    if md5.isnumeric():
+        print("Error: md5 is numeric")
+        return
+
+    # create sql
+    sql = "INSERT INTO malware_samples (Name, Family, MD5) VALUES (%s, %s, %s)"
+    values = (name, family, md5)
+    database.executeSQL(sql, values)
 
 # check if permission input file exists
 def checkPermissionInput():
@@ -147,14 +177,14 @@ def checkPermissionInput():
 
 def createPermissionRecord(id):
     # create sample id record
-    createSampleIdPermissionRecord(id)
+    utils.createSampleIdPermissionRecord(id)
 
     # get detected apk permissions
-    permissions = readDetectedPermissionsInput()
+    permissions = utils.readDetectedPermissionsInput()
     permissions.sort()
     
     # record sample permissions
-    recordSamplePermissions(id, permissions)
+    utils.writeSamplePermissionData(id, permissions)
 
 def generateData():
     while True:
@@ -185,4 +215,4 @@ def permissionData():
     pass
 
 def mitreAttackData():
-    populateMitreMatrixTable()
+    utils.populateMitreMatrixTable()

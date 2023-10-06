@@ -1,16 +1,17 @@
 # utils.py
+
 import pandas as pd
 import openpyxl as xl
 import os
 
-from .database import *
+from Server import database as db
 
 # Check hash against database records 
 def checkHash(hash):
     
     # MD5
     sql = "select * from malware_samples where md5 = '" + hash + "'"
-    results = query_data(sql)
+    results = db.query_data(sql)
     if results:
         print("MD5 match found.")
         displayMalwareRecord(results)
@@ -18,7 +19,7 @@ def checkHash(hash):
 
     # SHA1
     sql = "select * from malware_samples where sha1 = '" + hash + "'"
-    results = query_data(sql)
+    results = db.query_data(sql)
     if results:
         print("SHA1 match found.")
         displayMalwareRecord(results)
@@ -26,7 +27,7 @@ def checkHash(hash):
 
     # SHA256
     sql = "select * from malware_samples where sha256 = '" + hash + "'"
-    results = query_data(sql)
+    results = db.query_data(sql)
     if results:
         print("SHA256 match found.")
         displayMalwareRecord(results)
@@ -42,12 +43,12 @@ def checkPermissionInput():
 # check sample id
 def checkSamplePermissionIdRecords(id):
     sql = "select ID from detected_standard_permissions where ID = '" + id + "'"
-    results = query_data(sql)
+    results = db.query_data(sql)
     if results:
         return True
     
     sql = "select ID from detected_unknown_permissions where ID = '" + id + "'"
-    results = query_data(sql)
+    results = db.query_data(sql)
     if results:
         return True
     
@@ -56,11 +57,11 @@ def checkSamplePermissionIdRecords(id):
 def deleteSampleRecords(id):
     # delete from table: detected_standard_permissions
     sql = "DELETE FROM detected_standard_permissions WHERE ID = '"  + id + "'"
-    executeSQL(sql)
+    db.executeSQL(sql)
     
     # delete from table: detected_unknown_permissions
     sql = "DELETE FROM detected_unknown_permissions WHERE ID = '"  + id + "'"
-    executeSQL(sql)
+    db.executeSQL(sql)
 
 # Display malware record
 def displayMalwareRecord(record):
@@ -74,7 +75,7 @@ def displayMalwareRecord(record):
 # check permission records
 def checkPermissionRecords(id):
     sql = "SELECT * FROM detected_standard_permissions where id = '" + id + "'"
-    results = query_data(sql)
+    results = db.query_data(sql)
     if not results:
         return None
     # if
@@ -83,7 +84,7 @@ def checkPermissionRecords(id):
 def createSampleIdPermissionRecord(trojan_id):
     sql = "INSERT INTO detected_standard_permissions (id) VALUES (%s)"
     val = (trojan_id, )
-    executeSQL(sql, val)
+    db.executeSQL(sql, val)
     print("Permission record created for " + trojan_id)
 
 # Read Mitre data
@@ -117,7 +118,7 @@ def readMitreData():
 
             data = (sample_id, attack, technique, tactic, mali, susp, info)
             values.append(data)
-            executeSQLMany(sql, values)
+            db.executeSQLMany(sql, values)
 
 # read detected permission from text file
 def readDetectedPermissionsInput():
@@ -134,7 +135,7 @@ def readDetectedPermissionsInput():
 def getStandardAndroidPermissionList():
     permissions = list()
 
-    results = query_data("show columns from detected_standard_permissions")
+    results = db.query_data("show columns from detected_standard_permissions")
     if not results:
         print("[!!] - No permission columns retrieved from database.")
         exit()
@@ -166,7 +167,7 @@ def recordAndroidPermissions(trojan, permissions):
         else:
             sql = "UPDATE detected_standard_permissions SET "
             sql = sql + permission + " = 'X' WHERE id = " + str(trojan)
-            executeSQL(sql)
+            db.executeSQL(sql)
             updatedColumns = updatedColumns + 1
 
     print(str(updatedColumns) + " columns updated.")
@@ -182,7 +183,7 @@ def loadMitreData():
     sql = sql + " from mitre_detection"
     sql = sql + " order by description, attack_id"
 
-    df = generate_dataframe(sql)
+    df = db.generate_dataframe(sql)
     for index, row in df.iterrows():
         data = row[0] + " " + row[1]
         columns.add(data)
@@ -207,7 +208,7 @@ def getMitreDict():
     sql = sql + " from mitre_detection"
     sql = sql + " order by trojan_id, description, ATTACK_ID"
 
-    df = generate_dataframe(sql)
+    df = db.generate_dataframe(sql)
 
     for index, row in df.iterrows():
         key = row[0] + " " + row[1]
@@ -222,7 +223,7 @@ def getMitreDict():
 def getMitreMatrixColumns():
 
     sql = "SHOW COLUMNS FROM mitre_matrix"
-    df = generate_dataframe(sql)
+    df = db.generate_dataframe(sql)
     
     cols = df.loc[:, 'Field']  
     cols = cols.drop(cols.index[0])
@@ -234,7 +235,7 @@ def getMitreSampleIds():
     ids = list()
 
     sql = "select DISTINCT trojan_id from mitre_detection"
-    df = generate_dataframe(sql)
+    df = db.generate_dataframe(sql)
     
     for i in df.loc[:, 'trojan_id']:
         ids.append(i)
@@ -247,11 +248,11 @@ def addIdsMitreMatrix():
     samples = getMitreSampleIds()
     for index in samples:
         sql = "select * from mitre_matrix where trojan_id = " + str(index)
-        df = generate_dataframe(sql)
+        df = db.generate_dataframe(sql)
 
         if df.empty:
             sql = "insert into mitre_matrix (trojan_id) value (%s)"
-            executeSQL(sql, (str(index),))
+            db.executeSQL(sql, (str(index),))
             print("Added sample id: " + str(index))
 
 # Populate mitre matrix table
@@ -268,7 +269,7 @@ def populateMitreMatrixTable():
         if index not in columns:
             print(index + " Does not exist")
             sql = "ALTER TABLE `mitre_matrix` ADD `"+ index +"` varchar(1) null"
-            executeSQL(sql)
+            db.executeSQL(sql)
     print() # newline
 
     for key in dict_mitreMatrix:
@@ -276,14 +277,14 @@ def populateMitreMatrixTable():
         values = dict_mitreMatrix[key]
         for index in values:
             sql = "UPDATE mitre_matrix SET `" + key + "` = 'X' WHERE trojan_id = " + str(index)
-            executeSQL(sql)
+            db.executeSQL(sql)
 
 # Generate sample data by ids to .xlsx file
 def outputMalwareRecordsById(ids):
     FILE_PATH = "..\Output\Output-Excel.xlsx"
 
     sql = "SELECT * FROM mobfs_analysis WHERE id in " + ids
-    df = generate_dataframe(sql)
+    df = db.generate_dataframe(sql)
     df.to_excel(FILE_PATH)
 
 # Generate sample data by family to .xlsx file
@@ -291,7 +292,7 @@ def outputMalwareRecordsByFamily(database, family):
     FILE_PATH = "..\Output\Output-Excel.xlsx"
     
     sql = "SELECT * FROM malware_samples WHERE family = '" + family + "'"        
-    df = generate_dataframe(sql)
+    df = db.generate_dataframe(sql)
     df.to_excel(FILE_PATH)
 
 # Standard Permissions
@@ -302,7 +303,7 @@ def outputStandardPermissions(sample_set):
     sql = sql + " where id in " + str(sample_set)
     sql = sql + " order by id"
 
-    df_alpha = generate_dataframe(sql)
+    df_alpha = db.generate_dataframe(sql)
     df_beta = pd.DataFrame() # create empty data frame
 
     df_beta['ID'] = df_alpha['ID']
@@ -323,7 +324,7 @@ def outputUnknownPermissions(sample_set):
     sql = sql + " where id in " + sample_set
     sql = sql + " order by id"
 
-    df_alpha = df_alpha = generate_dataframe(sql)
+    df_alpha = df_alpha = db.generate_dataframe(sql)
     df_beta = pd.DataFrame()
 
     df_beta['ID'] = df_alpha['ID']
@@ -341,7 +342,7 @@ def outputNormalPermissions(sample_set):
     EXCEL_FILE_PATH = "..\\Ouput\\Normal-Permissions.xlsx"
 
     sql = "select name from android_permissions where Protection_level = 'Normal' order by name"
-    results = query_data(sql)
+    results = db.query_data(sql)
     normalPermissionsColumns = "'" # start sql columns
     buff = list()
     cnt = 0
@@ -361,7 +362,7 @@ def outputNormalPermissions(sample_set):
 
     ## ADD COLUMN CHECKING
     sql = "SHOW COLUMNS FROM detected_standard_permissions"
-    results = query_data(sql)
+    results = db.query_data(sql)
     detectedPermissions = list()
     for i in results:
         if(i[0] != "ID"):
@@ -384,7 +385,7 @@ def outputNormalPermissions(sample_set):
     sql = sql + " where ID in " + sample_set
     sql = sql + " order by ID"
 
-    df_alpha = generate_dataframe(sql)
+    df_alpha = db.generate_dataframe(sql)
     df_beta = pd.DataFrame()
 
     df_beta['ID'] = df_alpha['ID']
@@ -399,7 +400,7 @@ def outputNormalPermissions(sample_set):
     df_beta.to_excel(EXCEL_FILE_PATH)
 
 # Classify detected permissions
-def recordSamplePermissions(sample_id, permissions):
+def writeSamplePermissionData(sample_id, permissions):
     standardFormatPerms = list()
     unknownPermissions = list()
     unknownPermissionsFound = False
@@ -435,7 +436,7 @@ def recordNonStandardPermissions(trojan, unknownPermissions):
     addedCols = updatedCols = 0
 
     sql = "show columns from detected_unknown_permissions"
-    results = query_data(sql)
+    results = db.query_data(sql)
     if not results:
         print("[!!] - No columns retrieved from: unknown_permissions")
         exit()
@@ -450,18 +451,18 @@ def recordNonStandardPermissions(trojan, unknownPermissions):
     # Create record for APK in table
     sql = "INSERT INTO detected_unknown_permissions (id) VALUES (%s)"
     values = (trojan, )
-    executeSQL(sql, values)
+    db.executeSQL(sql, values)
 
     print("\nUnknown permissions")
     for index in unknownPermissions:
         if index not in dbCols:
             print("Adding new column to database: ", index)
             sql = "ALTER TABLE detected_unknown_permissions add " + index + " VARCHAR(1) NULL DEFAULT NULL"
-            executeSQL(sql)
+            db.executeSQL(sql)
 
         # update column with permission record
         sql = "update detected_unknown_permissions set " + index + " = 'X' where id = " + str(trojan)
-        executeSQL(sql)
+        db.executeSQL(sql)
 
     print("Columns added: " + str(addedCols) + " updated: " + str(updatedCols))
 
@@ -473,7 +474,7 @@ def generateMitreMatrix(sample_set):
     sql = sql + " where trojan_id in " + sample_set
     sql = sql + " order by trojan_id"
 
-    df_raw = pandasReadSqlQuery(sql)
+    df_raw = db.pandasReadSqlQuery(sql)
 
     columns = df_raw.columns.tolist()
     columns.sort()

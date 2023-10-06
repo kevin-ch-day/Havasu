@@ -10,6 +10,7 @@ __version__ = "1.0.1" # verion number
 def main():
     print("*~*~*~*~*~*~*~*~*~*~*~")
     print("*~*~*~* Havasu *~*~*~*")
+    print("*~*~*~*~*~*~*~*~*~*~*~")
     
     while True:
         menuChoices()
@@ -21,11 +22,11 @@ def main():
             exit(0)
         
         elif menuChoice == 1: # Static analysis
-            print("Static APK Analysis\n")
+            print("Static APK Analysis")
             static.run()
         
         elif menuChoice == 2: # APK Data Analysis
-            print("Access Database\n")
+            print("Access Database")
             server.run()
 
         elif menuChoice == 3: # About
