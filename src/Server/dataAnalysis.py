@@ -15,7 +15,10 @@ def run():
 
         elif menuChoice == "1": # chech hash
             hash = input("Enter hash: ")
-            utils.checkHash(hash)
+            if not hash or hash == "\n":
+                print("[!!] Input error")
+            else:
+                utils.checkHash(hash)
 
         elif menuChoice == "2": # View Data
             viewData()

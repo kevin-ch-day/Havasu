@@ -8,7 +8,7 @@ __version__ = "1.0.1" # verion number
 
 # main
 def main():
-    print("*~*~*~*~*~*~*~*~*~*~*~")
+    print("\n*~*~*~*~*~*~*~*~*~*~*~")
     print("*~*~*~* Havasu *~*~*~*")
     print("*~*~*~*~*~*~*~*~*~*~*~")
     
