@@ -8,7 +8,7 @@ from Server import database
 def run():
     while True:
         mainMenu()
-        menuChoice = input("\nEnter choice: ")      
+        menuChoice = input("Enter choice: ")      
         if menuChoice == "0": # Exit application
             print("Exiting application")
             exit(0)
@@ -52,7 +52,7 @@ def recordData():
         print(" 3 - Record mitre att&ck data")
         print(" 4 - Return to data menu")
 
-        choice = input("\nEnter choice: ")
+        choice = input("Enter choice: ")
         if choice == "1": # create sample record
             createSampleRecord()
         
@@ -189,7 +189,7 @@ def generateData():
         print(" 3 - Mitre Att&ck data")
         print(" 4 - Menu return")
 
-        choice = input("\nEnter choice: ")
+        choice = input("Enter choice: ")
         if choice == "1": # sample/family data
             sampleData()
 
@@ -211,7 +211,7 @@ def permissionData():
     print("Permission Data")
     print("1 - Family")
     print("2 - Sample ids")
-    print("0 - Return to menu\n")
+    print("0 - Return to menu")
     userChoice = input("Choice: ")
 
     if userChoice == "0":

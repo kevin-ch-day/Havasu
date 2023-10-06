@@ -325,67 +325,93 @@ def outputUnknownPermissions(sample_set):
                         break
             df_beta.to_excel(EXCEL_FILE_PATH)
 
-# Normal Permissions
-def outputNormalPermissions(sample_set):
-    EXCEL_FILE_PATH = ".\Ouput\\Normal-Permissions.xlsx"
-
-    sql = "select name from android_permissions where Protection_level = 'Normal' order by name"
+def getAllNormalPermissions():
+    normal_permissions = list()
+    
+    sql = "select name from android_permissions "
+    sql = sql + "where Protection_level = 'Normal' "
+    sql = sql + "order by name"
     results = db.query_data(sql)
-    normalPermissionsColumns = "'" # start sql columns
-    buff = list()
+
+    for index in results:
+        normal_permissions.append(index[0])
+    
+    return normal_permissions
+
+def getAllDangerousPermissions():
+    dangerous_permissions = list()
+    
+    sql = "select name from android_permissions "
+    sql = sql + "where Protection_level = 'Dangerous' "
+    sql = sql + "order by name"
+    results = db.query_data(sql)
+
+    for index in results:
+        dangerous_permissions.append(index[0])
+    
+    return dangerous_permissions
+
+# output Normal permisions for the sample set
+def outputNormalPermissions(sample_set):
+    EXCEL_FILE_PATH = r"Output\\Normal-Permissions.xlsx"
+    EXCEL_DEUBUG_PATH = r"Output\\DEBUG.xlsx"
+    select_columns = str()
+    normal_columns = list()
     cnt = 0
 
-    for x in results:    
-        if(x[0] == "ID"):
-            print(x[0])
-        elif(cnt == (len(results)-1)):
-            normalPermissionsColumns = normalPermissionsColumns + x[0] + "'" # end columns
-            #print(cnt, x[0])
+    permissions = getAllNormalPermissions()
+    for index in permissions:
+        if(cnt == 0):
+            select_columns = "'" + index + "', "
+        elif(cnt == (len(permissions)-1)):
+            select_columns = select_columns + "'" +  index + "'"
         else:
-            normalPermissionsColumns = "'" + normalPermissionsColumns + x[0] + "', " # append column
-            #print(cnt, x[0])
-
-        buff.append(x[0])
+            select_columns =  select_columns + "'" + index + "', "
         cnt = cnt + 1
 
-    ## ADD COLUMN CHECKING
-    sql = "SHOW COLUMNS FROM detected_standard_permissions"
+    # get all columns from table
+    sql = "show columns from detected_standard_permissions"
     results = db.query_data(sql)
     detectedPermissions = list()
-    for i in results:
-        if(i[0] != "ID"):
-            detectedPermissions.append(i[0])
+    for index in results:
+        if(index[0] != "ID"):
+            detectedPermissions.append(index[0])
 
+    # Error Checking
+    # Check if there are mission permission and/or columns
     missingPermissions = list()
-    for index in buff:
+    for index in normal_columns:
         if index not in detectedPermissions:
             missingPermissions.append(index.upper())
+            print(missingPermissions)
 
     if missingPermissions:
-        print("Missing Permissions: ")
+        print("[!!] Error - Missing permission from master table: 'android_permissions'")
         for i in missingPermissions:
             print(i)
         exit()
     # if
 
-    sql = "select ID, " + normalPermissionsColumns
+    sql = "select id, " + select_columns
     sql = sql + " from detected_standard_permissions"
-    sql = sql + " where ID in " + str(sample_set)
-    sql = sql + " order by ID"
+    sql = sql + " where id in " + str(sample_set)
+    sql = sql + " order by id"
 
-    df_alpha = db.generate_dataframe(sql)
-    df_beta = pd.DataFrame()
+    df_original = db.generate_dataframe(sql)
+    df_original.to_excel(EXCEL_DEUBUG_PATH)
+    exit()
 
-    df_beta['ID'] = df_alpha['ID']
-    df_alpha = df_alpha.drop(columns=['ID'])
+    df_worksheet = pd.DataFrame()
+    df_worksheet['ID'] = df_original['ID'] # copy sample ids
+    df_original = df_original.drop(columns=['ID'])
 
-    for column in df_alpha:
-        for cell in df_alpha[column]:
+    for col in df_original:
+        for cell in df_original[col]:
             if cell is not None:
-                print(column)
-                df_beta[column] = df_alpha[column]
+                df_worksheet[col] = df_original[col]
                 break
-    df_beta.to_excel(EXCEL_FILE_PATH)
+
+    df_worksheet.to_excel(EXCEL_FILE_PATH)
 
 # Classify detected permissions
 def writeSamplePermissionData(sample_id, permissions):
@@ -406,7 +432,7 @@ def writeSamplePermissionData(sample_id, permissions):
     print("\nStandard Permissions found: ", len(standardFormatPerms))
 
     if unknownPermissionsFound:
-        RECORD_UNKNOWN_PERMS_PATH = "..\Output\\"+str(sample_id)+"-UnknownPerms.txt"
+        RECORD_UNKNOWN_PERMS_PATH = ".\Output\\"+str(sample_id)+"-UnknownPerms.txt"
         fUnknownPermissions = open(RECORD_UNKNOWN_PERMS_PATH, "w")
         try:
             for i in unknownPermissions:
@@ -456,7 +482,7 @@ def recordNonStandardPermissions(trojan, unknownPermissions):
 
 # Generate mitre matrix
 def generateMitreMatrix(sample_set):
-    EXCEL_FILE_PATH = '..\Output\Mitre-Matrix.xlsx'
+    EXCEL_FILE_PATH = '.\Output\Mitre-Matrix.xlsx'
     
     sql = "select * from mitre_matrix "
     sql = sql + " where trojan_id in " + sample_set
