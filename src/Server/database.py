@@ -115,7 +115,7 @@ def generate_dataframe(sql):
         results = pd.read_sql_query(sql, connection)
         records = pd.DataFrame(results)
 
-        if not records:
+        if records.empty:
             return None
         else:
             return records

@@ -35,7 +35,7 @@ def checkHash(hash):
 
     print("No matching record found.")
 
-# check if permission input txt file exists
+# Check if permission input txt file exists
 def checkPermissionInput():
     fileExist = os.path.isfile("..\Input\APK_PERMISSIONS.txt")
     return fileExist
@@ -54,6 +54,7 @@ def checkSamplePermissionIdRecords(id):
     
     return False
 
+# Delete sample records
 def deleteSampleRecords(id):
     # delete from table: detected_standard_permissions
     sql = "DELETE FROM detected_standard_permissions WHERE ID = '"  + id + "'"
@@ -74,15 +75,14 @@ def displayMalwareRecord(record):
 
 # check permission records
 def checkPermissionRecords(id):
-    sql = "SELECT * FROM detected_standard_permissions where id = '" + id + "'"
+    sql = "select id from detected_standard_permissions where id = '" + id + "'"
     results = db.query_data(sql)
     if not results:
         return None
-    # if
 
 # create scan record for trojan id
 def createSampleIdPermissionRecord(trojan_id):
-    sql = "INSERT INTO detected_standard_permissions (id) VALUES (%s)"
+    sql = "insert into detected_standard_permissions (id) values (%s)"
     val = (trojan_id, )
     db.executeSQL(sql, val)
     print("Permission record created for " + trojan_id)
@@ -120,7 +120,7 @@ def readMitreData():
             values.append(data)
             db.executeSQLMany(sql, values)
 
-# read detected permission from text file
+# Read detected permission from text file
 def readDetectedPermissionsInput():
     PERMISSIONS_INPUT_PATH = "Input\APK_PERMISSIONS.txt"
     fPermissions = open(PERMISSIONS_INPUT_PATH, "r")
@@ -289,7 +289,7 @@ def outputMalwareRecordsById(ids):
 
 # Generate sample data by family to .xlsx file
 def outputMalwareRecordsByFamily(database, family):
-    FILE_PATH = "..\Output\Output-Excel.xlsx"
+    FILE_PATH = "Output\\Output-Excel.xlsx"
     
     sql = "SELECT * FROM malware_samples WHERE family = '" + family + "'"        
     df = db.generate_dataframe(sql)
@@ -297,7 +297,9 @@ def outputMalwareRecordsByFamily(database, family):
 
 # Standard Permissions
 def outputStandardPermissions(sample_set):
-    EXCEL_FILE_PATH = '..\Output\Android-Permissions.xlsx'
+    EXCEL_FILE_PATH = '.\Output\\Android-Permissions.xlsx'
+    print(os.listdir())
+    #exit()
     
     sql = "select * from detected_standard_permissions "
     sql = sql + " where id in " + str(sample_set)
@@ -315,10 +317,11 @@ def outputStandardPermissions(sample_set):
                 df_beta[column] = df_alpha[column]
                 break
     df_beta.to_excel(EXCEL_FILE_PATH)
+    exit()
 
 # Unknown Permissions
 def outputUnknownPermissions(sample_set):
-    EXCEL_FILE_PATH = "..\\Output\\Unknown-Permissions.xlsx"
+    EXCEL_FILE_PATH = ".\Output\\Unknown-Permissions.xlsx"
 
     sql = "select * from detected_unknown_permissions "
     sql = sql + " where id in " + sample_set
@@ -339,7 +342,7 @@ def outputUnknownPermissions(sample_set):
 
 # Normal Permissions
 def outputNormalPermissions(sample_set):
-    EXCEL_FILE_PATH = "..\\Ouput\\Normal-Permissions.xlsx"
+    EXCEL_FILE_PATH = ".\Ouput\\Normal-Permissions.xlsx"
 
     sql = "select name from android_permissions where Protection_level = 'Normal' order by name"
     results = db.query_data(sql)

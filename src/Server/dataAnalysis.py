@@ -26,13 +26,7 @@ def run():
         elif menuChoice == "4": # Generate Data
             generateData()
 
-        elif menuChoice == "5": # Permission Data
-            permissionData()
-
-        elif menuChoice == "6": # Mitre Attack Data
-            mitreAttackData()
-
-        elif menuChoice == "7": # Main menu
+        elif menuChoice == "5": # Main menu
             return
         
         else:
@@ -45,10 +39,8 @@ def mainMenu():
     print(" 1 - Check Hash")
     print(" 2 - View Data")
     print(" 3 - Record Data")
-    print(" 4 - Generate SData")
-    print(" 5 - Permission Data")
-    print(" 6 - Mitre Att&ck Data")
-    print(" 7 - Main Menu")
+    print(" 4 - Generate Data")
+    print(" 5 - Main Menu")
     print(" 0 - Exit")
 
 def recordData():
@@ -56,7 +48,7 @@ def recordData():
         print("\nRecord Sample Data")
         print("----------------------------")
         print(" 1 - Create sample record")
-        print(" 2 - Record permission data")
+        print(" 2 - Record sample permissions")
         print(" 3 - Record mitre att&ck data")
         print(" 4 - Return to data menu")
 
@@ -106,6 +98,7 @@ def recordSamplePermissions():
         else:
             createPermissionRecord(sample_id)
 
+# delete sample permission records
 def deleteSampleRecords(sample_id):
     sql = "DELETE FROM detected_standard_permissions WHERE id = '"+sample_id+"'"
     database.executeSQL(sql)
@@ -212,7 +205,32 @@ def sampleData():
     pass
 
 def permissionData():
-    pass
+    print("Permission Data")
+    print("1 - Family")
+    print("2 - Sample ids")
+    print("0 - Return to menu\n")
+    userChoice = input("Choice: ")
+
+    if userChoice == "0":
+        return # data menu
+    
+    elif userChoice == "1": # family
+        familyInput = input("Enter family: ")
+        family = familyInput.strip()
+        print(family)
+
+    elif userChoice == "2": # samples
+        samplesInput = input("Enter samples: ")
+        sample_set = tuple(samplesInput.split())
+        
+        # standard permisisons
+        utils.outputStandardPermissions(sample_set)
+        
+        # unknown permissions
+        utils.outputUnknownPermissions(sample_set)
+        
+        # normal permissions
+        utils.outputNormalPermissions(sample_set)
 
 def mitreAttackData():
     utils.populateMitreMatrixTable()
