@@ -179,6 +179,7 @@ def createPermissionRecord(id):
     # record sample permissions
     utils.writeSamplePermissionData(id, permissions)
 
+# Data generation menu
 def generateData():
     while True:
         print("\nGenerate Data")
@@ -201,9 +202,11 @@ def generateData():
         elif choice == "4": # return to menu
             return
 
+# Sample data generation
 def sampleData():
     pass
 
+# Permission data generation menu
 def permissionData():
     print("Permission Data")
     print("1 - Family")

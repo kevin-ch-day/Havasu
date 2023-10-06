@@ -9,7 +9,6 @@ from Server import database as db
 # Check hash against database records 
 def checkHash(hash):
     
-    # MD5
     sql = "select * from malware_samples where md5 = '" + hash + "'"
     results = db.query_data(sql)
     if results:
@@ -17,7 +16,6 @@ def checkHash(hash):
         displayMalwareRecord(results)
         return
 
-    # SHA1
     sql = "select * from malware_samples where sha1 = '" + hash + "'"
     results = db.query_data(sql)
     if results:
@@ -25,14 +23,13 @@ def checkHash(hash):
         displayMalwareRecord(results)
         return
 
-    # SHA256
     sql = "select * from malware_samples where sha256 = '" + hash + "'"
     results = db.query_data(sql)
     if results:
         print("SHA256 match found.")
         displayMalwareRecord(results)
         return
-
+    
     print("No matching record found.")
 
 # Check if permission input txt file exists
@@ -198,18 +195,16 @@ def getMitreDict():
         dict[i] = list()
     # for
 
-    print("\nLoading Mitre Data") # newline
-    print("---------------") # newline
+    print("\nLoading Mitre Data")
+    print("---------------")
     for k in dict:
         print(k)
-    print() # newline
 
     sql = "select description, ATTACK_ID, trojan_id"
     sql = sql + " from mitre_detection"
     sql = sql + " order by trojan_id, description, ATTACK_ID"
 
     df = db.generate_dataframe(sql)
-
     for index, row in df.iterrows():
         key = row[0] + " " + row[1]
         items = dict[key]
@@ -221,25 +216,19 @@ def getMitreDict():
 
 # Get mitre matrix columns
 def getMitreMatrixColumns():
-
     sql = "SHOW COLUMNS FROM mitre_matrix"
     df = db.generate_dataframe(sql)
-    
     cols = df.loc[:, 'Field']  
     cols = cols.drop(cols.index[0])
-
     return cols.tolist()
 
 # Get sample ids
 def getMitreSampleIds():
     ids = list()
-
     sql = "select DISTINCT trojan_id from mitre_detection"
     df = db.generate_dataframe(sql)
-    
     for i in df.loc[:, 'trojan_id']:
         ids.append(i)
-
     ids.sort()
     return ids
 
@@ -270,7 +259,6 @@ def populateMitreMatrixTable():
             print(index + " Does not exist")
             sql = "ALTER TABLE `mitre_matrix` ADD `"+ index +"` varchar(1) null"
             db.executeSQL(sql)
-    print() # newline
 
     for key in dict_mitreMatrix:
         print(key)
@@ -282,7 +270,6 @@ def populateMitreMatrixTable():
 # Generate sample data by ids to .xlsx file
 def outputMalwareRecordsById(ids):
     FILE_PATH = "..\Output\Output-Excel.xlsx"
-
     sql = "SELECT * FROM mobfs_analysis WHERE id in " + ids
     df = db.generate_dataframe(sql)
     df.to_excel(FILE_PATH)
@@ -290,16 +277,13 @@ def outputMalwareRecordsById(ids):
 # Generate sample data by family to .xlsx file
 def outputMalwareRecordsByFamily(database, family):
     FILE_PATH = "Output\\Output-Excel.xlsx"
-    
     sql = "SELECT * FROM malware_samples WHERE family = '" + family + "'"        
     df = db.generate_dataframe(sql)
     df.to_excel(FILE_PATH)
 
 # Standard Permissions
 def outputStandardPermissions(sample_set):
-    EXCEL_FILE_PATH = '.\Output\\Android-Permissions.xlsx'
-    print(os.listdir())
-    #exit()
+    EXCEL_FILE_PATH = '.\Output\\Android-Permissions.xlsx' 
     
     sql = "select * from detected_standard_permissions "
     sql = sql + " where id in " + str(sample_set)
@@ -317,28 +301,29 @@ def outputStandardPermissions(sample_set):
                 df_beta[column] = df_alpha[column]
                 break
     df_beta.to_excel(EXCEL_FILE_PATH)
-    exit()
 
 # Unknown Permissions
 def outputUnknownPermissions(sample_set):
     EXCEL_FILE_PATH = ".\Output\\Unknown-Permissions.xlsx"
 
     sql = "select * from detected_unknown_permissions "
-    sql = sql + " where id in " + sample_set
+    sql = sql + " where id in " + str(sample_set)
     sql = sql + " order by id"
 
-    df_alpha = df_alpha = db.generate_dataframe(sql)
-    df_beta = pd.DataFrame()
+    df_alpha = db.generate_dataframe(sql)
+    if df_alpha:
+        if df_alpha.empty:
+            df_beta = pd.DataFrame()
 
-    df_beta['ID'] = df_alpha['ID']
-    df_alpha = df_alpha.drop(columns=['ID'])
+            df_beta['ID'] = df_alpha['ID']
+            df_alpha = df_alpha.drop(columns=['ID'])
 
-    for column in df_alpha:
-        for cell in df_alpha[column]:
-            if cell is not None:
-                df_beta[column] = df_alpha[column]
-                break
-    df_beta.to_excel(EXCEL_FILE_PATH)
+            for column in df_alpha:
+                for cell in df_alpha[column]:
+                    if cell is not None:
+                        df_beta[column] = df_alpha[column]
+                        break
+            df_beta.to_excel(EXCEL_FILE_PATH)
 
 # Normal Permissions
 def outputNormalPermissions(sample_set):
@@ -385,7 +370,7 @@ def outputNormalPermissions(sample_set):
 
     sql = "select ID, " + normalPermissionsColumns
     sql = sql + " from detected_standard_permissions"
-    sql = sql + " where ID in " + sample_set
+    sql = sql + " where ID in " + str(sample_set)
     sql = sql + " order by ID"
 
     df_alpha = db.generate_dataframe(sql)
@@ -478,7 +463,6 @@ def generateMitreMatrix(sample_set):
     sql = sql + " order by trojan_id"
 
     df_raw = db.pandasReadSqlQuery(sql)
-
     columns = df_raw.columns.tolist()
     columns.sort()
     columns.remove('trojan_id')
