@@ -208,7 +208,7 @@ def sampleData():
 
 # Permission data generation menu
 def permissionData():
-    print("*** Permission Data ***")
+    print("\n*** Permission Data ***")
     print("1 - Family")
     print("2 - Sample ids")
     print("0 - Return to menu")

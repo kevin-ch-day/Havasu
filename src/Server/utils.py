@@ -276,14 +276,14 @@ def outputMalwareRecordsById(ids):
 
 # Generate sample data by family to .xlsx file
 def outputMalwareRecordsByFamily(database, family):
-    FILE_PATH = "Output\\Output-Excel.xlsx"
+    FILE_PATH = r".\\Output\\Output-Excel.xlsx"
     sql = "SELECT * FROM malware_samples WHERE family = '" + family + "'"        
     df = db.generate_dataframe(sql)
     df.to_excel(FILE_PATH)
 
 # Standard Permissions
 def outputStandardPermissions(sample_set):
-    EXCEL_FILE_PATH = '.\Output\\Android-Permissions.xlsx' 
+    EXCEL_FILE_PATH = r".\\Output\\Standard-Permissions.xlsx" 
     
     sql = "select * from detected_standard_permissions "
     sql = sql + " where id in " + str(sample_set)
@@ -304,7 +304,7 @@ def outputStandardPermissions(sample_set):
 
 # Unknown Permissions
 def outputUnknownPermissions(sample_set):
-    EXCEL_FILE_PATH = ".\Output\\Unknown-Permissions.xlsx"
+    EXCEL_FILE_PATH = r".\\Output\\Unknown-Permissions.xlsx"
 
     sql = "select * from detected_unknown_permissions "
     sql = sql + " where id in " + str(sample_set)
@@ -353,8 +353,8 @@ def getAllDangerousPermissions():
 
 # output Normal permisions for the sample set
 def outputNormalPermissions(sample_set):
-    EXCEL_FILE_PATH = r"Output\\Normal-Permissions.xlsx"
-    EXCEL_DEUBUG_PATH = r"Output\\DEBUG.xlsx"
+    EXCEL_FILE_PATH = r".\\Output\\Normal-Permissions.xlsx"
+    EXCEL_DEUBUG_PATH = r".\\Output\\DEBUG.xlsx"
     select_columns = str()
     normal_columns = list()
     cnt = 0
@@ -390,7 +390,6 @@ def outputNormalPermissions(sample_set):
         for i in missingPermissions:
             print(i)
         exit()
-    # if
 
     sql = "select id, " + select_columns
     sql = sql + " from detected_standard_permissions"
@@ -398,8 +397,8 @@ def outputNormalPermissions(sample_set):
     sql = sql + " order by id"
 
     df_original = db.generate_dataframe(sql)
-    df_original.to_excel(EXCEL_DEUBUG_PATH)
-    exit()
+    #df_original.to_excel(EXCEL_DEUBUG_PATH)
+    #exit()
 
     df_worksheet = pd.DataFrame()
     df_worksheet['ID'] = df_original['ID'] # copy sample ids
