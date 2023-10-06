@@ -34,8 +34,7 @@ def run():
 
 # menu
 def mainMenu():
-    print("\nData Menu")
-    print("----------------------------")
+    print("\n*** Data Menu ***")
     print(" 1 - Check Hash")
     print(" 2 - View Data")
     print(" 3 - Record Data")
@@ -45,8 +44,7 @@ def mainMenu():
 
 def recordData():
     while True:
-        print("\nRecord Sample Data")
-        print("----------------------------")
+        print("\n** Record Sample Data **")
         print(" 1 - Create sample record")
         print(" 2 - Record sample permissions")
         print(" 3 - Record mitre att&ck data")
@@ -182,8 +180,7 @@ def createPermissionRecord(id):
 # Data generation menu
 def generateData():
     while True:
-        print("\nGenerate Data")
-        print("----------------------------")
+        print("\n*** Generate Data ***")
         print(" 1 - Sample/family data")
         print(" 2 - Permission data")
         print(" 3 - Mitre Att&ck data")
@@ -208,7 +205,7 @@ def sampleData():
 
 # Permission data generation menu
 def permissionData():
-    print("Permission Data")
+    print("*** Permission Data ***")
     print("1 - Family")
     print("2 - Sample ids")
     print("0 - Return to menu")

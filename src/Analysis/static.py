@@ -33,7 +33,7 @@ def run():
 
 # Static analysis menu
 def staticMenu():
-    print("\n** Static Analysis **")
+    print("\n*** Static Analysis ***")
     print(" 1 - Display Available APK files")
     print(" 2 - Decompile APK")
     print(" 3 - APK to JAR") 
@@ -193,7 +193,7 @@ def analyzeAndroidApk():
 
 # Static Analysis APK Manu
 def analyzeMenuOptions():
-    print("\n** Analyze APK **")
+    print("\n*** Analyze APK ***")
     print(" 1 - Meta Data")
     print(" 2 - Permissions")
     print(" 3 - Uses-Features")

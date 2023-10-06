@@ -22,11 +22,9 @@ def main():
             exit(0)
         
         elif menuChoice == 1: # Static analysis
-            print("Static APK Analysis")
             static.run()
         
         elif menuChoice == 2: # APK Data Analysis
-            print("Access Database")
             server.run()
 
         elif menuChoice == 3: # About
@@ -40,12 +38,12 @@ def main():
 
 # Menu Choices
 def menuChoices():
-    print("\nMain Menu")
+    print("\n*** Main Menu ***")
     print(" 1 - Static APK Analysis")
     print(" 2 - Access Database")
     print(" 3 - About")
     print(" 4 - Help")
-    print(" 0 - Exit\n")
+    print(" 0 - Exit")
 
 # about
 def about():
