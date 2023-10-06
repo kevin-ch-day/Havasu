@@ -4,7 +4,7 @@
 from Analysis import static
 from Server import dataAnalysis as server
 
-__version__ = "1.0.1" # verion number
+__version__ = "1.0.2" # verion number
 
 # main
 def main():

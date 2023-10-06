@@ -67,7 +67,7 @@ def recordData():
             return
 
 def viewData():
-    pass
+    print("*** View Data ***")
 
 # Record Apk Permissions
 def recordSamplePermissions():
