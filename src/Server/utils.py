@@ -187,6 +187,16 @@ def loadMitreData():
 
     return sorted(columns)
 
+# get family sample set
+def getFamilySampleSet(family):
+    sample_ids = list()
+    sql = "select id from malware_samples where family = '" + family + "'"
+    results = db.query_data(sql)
+    for index in results:
+        sample_ids.append(index)
+    
+    return tuple(sample_ids)
+
 # Mitre data dictionary
 def getMitreDict():
 

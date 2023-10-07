@@ -220,18 +220,19 @@ def permissionData():
     elif userChoice == "1": # family
         familyInput = input("Enter family: ")
         family = familyInput.strip()
-        print(family)
+        sample_set = utils.getFamilySampleSet(family)
 
     elif userChoice == "2": # samples
         samplesInput = input("Enter samples: ")
         sample_set = tuple(samplesInput.split())
-        print() # newline
-        
-        utils.outputStandardPermissions(sample_set)
-        utils.outputUnknownPermissions(sample_set)
 
-        utils.outputNormalPermissions(sample_set)
-        utils.outputDangerousPermissions(sample_set)
+    print() # newline
+    utils.outputStandardPermissions(sample_set)
+    utils.outputUnknownPermissions(sample_set)
 
+    utils.outputNormalPermissions(sample_set)
+    utils.outputDangerousPermissions(sample_set)
+
+# Mitre Attack Data
 def mitreAttackData():
     utils.populateMitreMatrixTable()
