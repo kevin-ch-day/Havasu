@@ -325,6 +325,19 @@ def outputUnknownPermissions(sample_set):
                         break
             df_beta.to_excel(EXCEL_FILE_PATH)
 
+def getAllPermissions():
+    permissions = list()
+    
+    sql = "select name from android_permissions "
+    sql = sql + "where Protection_level = 'Normal' "
+    sql = sql + "order by name"
+    results = db.query_data(sql)
+
+    for index in results:
+        permissions.append(index[0])
+    
+    return permissions
+
 def getAllNormalPermissions():
     normal_permissions = list()
     
@@ -351,45 +364,56 @@ def getAllDangerousPermissions():
     
     return dangerous_permissions
 
+
+# Check detected standard permissions table
+def checkDetectedStandarcPermissionTable():
+    permissions = list()
+    missingPermissions = list()
+    missingColumns = False
+    
+    # get detected permissions table data
+    sql = "show columns from detected_standard_permissions"
+    results = db.query_data(sql)
+    for index in results:
+        if(index[0] == "ID"):
+            continue
+        else:
+           permissions.append(index[0])
+
+    # get master permissions table data
+    for index in getAllPermissions():
+        if index not in permissions:
+            missingPermissions.append(index.upper())
+
+    # display any missing permissions
+    if missingPermissions:
+        missingColumns = True
+        print("[!!] Error - the followng permissions are missing from table")
+        for i in missingPermissions:
+            print(i)
+    
+    return missingColumns    
+
 # output Normal permisions for the sample set
 def outputNormalPermissions(sample_set):
+
+    # check if any permissions are missing
+    if checkDetectedStandarcPermissionTable():
+        exit()
+
     EXCEL_FILE_PATH = r".\\Output\\Normal-Permissions.xlsx"
-    EXCEL_DEUBUG_PATH = r".\\Output\\DEBUG.xlsx"
     select_columns = str()
-    normal_columns = list()
     cnt = 0
 
     permissions = getAllNormalPermissions()
     for index in permissions:
         if(cnt == 0):
-            select_columns = "'" + index + "', "
+            select_columns = "`" + index + "`, "
         elif(cnt == (len(permissions)-1)):
-            select_columns = select_columns + "'" +  index + "'"
+            select_columns = select_columns + "`" +  index + "`"
         else:
-            select_columns =  select_columns + "'" + index + "', "
+            select_columns =  select_columns + "`" + index + "`, "
         cnt = cnt + 1
-
-    # get all columns from table
-    sql = "show columns from detected_standard_permissions"
-    results = db.query_data(sql)
-    detectedPermissions = list()
-    for index in results:
-        if(index[0] != "ID"):
-            detectedPermissions.append(index[0])
-
-    # Error Checking
-    # Check if there are mission permission and/or columns
-    missingPermissions = list()
-    for index in normal_columns:
-        if index not in detectedPermissions:
-            missingPermissions.append(index.upper())
-            print(missingPermissions)
-
-    if missingPermissions:
-        print("[!!] Error - Missing permission from master table: 'android_permissions'")
-        for i in missingPermissions:
-            print(i)
-        exit()
 
     sql = "select id, " + select_columns
     sql = sql + " from detected_standard_permissions"
@@ -397,12 +421,9 @@ def outputNormalPermissions(sample_set):
     sql = sql + " order by id"
 
     df_original = db.generate_dataframe(sql)
-    #df_original.to_excel(EXCEL_DEUBUG_PATH)
-    #exit()
-
     df_worksheet = pd.DataFrame()
-    df_worksheet['ID'] = df_original['ID'] # copy sample ids
-    df_original = df_original.drop(columns=['ID'])
+    df_worksheet.loc[:, 'id'] = df_original.loc[:, 'id']
+    df_original.drop(columns=['id'])
 
     for col in df_original:
         for cell in df_original[col]:
