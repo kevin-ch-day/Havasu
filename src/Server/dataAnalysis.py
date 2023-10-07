@@ -219,8 +219,7 @@ def permissionData():
     
     elif userChoice == "1": # family
         familyInput = input("Enter family: ")
-        family = familyInput.strip()
-        sample_set = utils.getFamilySampleSet(family)
+        sample_set = utils.getFamilySampleSet(familyInput)
 
     elif userChoice == "2": # samples
         samplesInput = input("Enter samples: ")

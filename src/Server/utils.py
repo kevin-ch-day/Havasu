@@ -193,7 +193,7 @@ def getFamilySampleSet(family):
     sql = "select id from malware_samples where family = '" + family + "'"
     results = db.query_data(sql)
     for index in results:
-        sample_ids.append(index)
+        sample_ids.append(index[0])
     
     return tuple(sample_ids)
 
