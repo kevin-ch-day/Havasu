@@ -225,15 +225,13 @@ def permissionData():
     elif userChoice == "2": # samples
         samplesInput = input("Enter samples: ")
         sample_set = tuple(samplesInput.split())
+        print() # newline
         
-        # standard permisisons
         utils.outputStandardPermissions(sample_set)
-        
-        # unknown permissions
         utils.outputUnknownPermissions(sample_set)
-        
-        # normal permissions
+
         utils.outputNormalPermissions(sample_set)
+        utils.outputDangerousPermissions(sample_set)
 
 def mitreAttackData():
     utils.populateMitreMatrixTable()

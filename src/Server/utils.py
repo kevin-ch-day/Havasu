@@ -300,6 +300,8 @@ def outputStandardPermissions(sample_set):
             if cell is not None:
                 df_beta[column] = df_alpha[column]
                 break
+
+    print("Generating standard permission excel file")
     df_beta.to_excel(EXCEL_FILE_PATH)
 
 # Unknown Permissions
@@ -311,19 +313,103 @@ def outputUnknownPermissions(sample_set):
     sql = sql + " order by id"
 
     df_alpha = db.generate_dataframe(sql)
-    if df_alpha:
-        if df_alpha.empty:
-            df_beta = pd.DataFrame()
+    if not df_alpha or df_alpha.empty:
+        print("No unknown permission data generated.")
 
-            df_beta['ID'] = df_alpha['ID']
-            df_alpha = df_alpha.drop(columns=['ID'])
+    else:
+        df_beta = pd.DataFrame()
 
-            for column in df_alpha:
-                for cell in df_alpha[column]:
-                    if cell is not None:
-                        df_beta[column] = df_alpha[column]
-                        break
-            df_beta.to_excel(EXCEL_FILE_PATH)
+        df_beta['id'] = df_alpha['id']
+        df_alpha = df_alpha.drop(columns=['id'])
+
+        for column in df_alpha:
+            for cell in df_alpha[column]:
+                if cell is not None:
+                    df_beta[column] = df_alpha[column]
+                    break
+        print("Generating standard permission excel file")
+        df_beta.to_excel(EXCEL_FILE_PATH)
+
+# output Normal permisions for the sample set
+def outputNormalPermissions(sample_set):
+
+    # check if any permissions are missing
+    if checkDetectedStandarcPermissionTable():
+        exit()
+
+    EXCEL_FILE_PATH = r".\\Output\\Normal-Permissions.xlsx"
+    select_columns = str()
+    cnt = 0
+
+    permissions = getAllNormalPermissions()
+    for index in permissions:
+        if(cnt == 0):
+            select_columns = "`" + index + "`, "
+        elif(cnt == (len(permissions)-1)):
+            select_columns = select_columns + "`" +  index + "`"
+        else:
+            select_columns =  select_columns + "`" + index + "`, "
+        cnt = cnt + 1
+
+    sql = "select id, " + select_columns
+    sql = sql + " from detected_standard_permissions"
+    sql = sql + " where id in " + str(sample_set)
+    sql = sql + " order by id"
+
+    df_original = db.generate_dataframe(sql)
+    df_worksheet = pd.DataFrame()
+    df_worksheet.loc[:, 'id'] = df_original.loc[:, 'id']
+    df_original.drop(columns=['id'])
+
+    for col in df_original:
+        for cell in df_original[col]:
+            if cell is not None:
+                df_worksheet[col] = df_original[col]
+                break
+
+    print("Generating detected normal permissions.")
+    df_worksheet.to_excel(EXCEL_FILE_PATH)
+
+# output Dangerous permisions for the sample set
+def outputDangerousPermissions(sample_set):
+
+    # check if any permissions are missing
+    if checkDetectedStandarcPermissionTable():
+        exit()
+
+    EXCEL_FILE_PATH = r".\\Output\\Dangerous-Permissions.xlsx"
+    select_columns = str()
+    cnt = 0
+
+    permissions = getAllDangerousPermissions()
+    for index in permissions:
+        if(cnt == 0):
+            select_columns = "`" + index + "`, "
+        elif(cnt == (len(permissions)-1)):
+            select_columns = select_columns + "`" +  index + "`"
+        else:
+            select_columns =  select_columns + "`" + index + "`, "
+        cnt = cnt + 1
+
+    sql = "select id, " + select_columns
+    sql = sql + " from detected_standard_permissions"
+    sql = sql + " where id in " + str(sample_set)
+    sql = sql + " order by id"
+
+    df_original = db.generate_dataframe(sql)
+    df_worksheet = pd.DataFrame()
+    df_worksheet.loc[:, 'id'] = df_original.loc[:, 'id']
+    df_original.drop(columns=['id'])
+
+    for col in df_original:
+        for cell in df_original[col]:
+            if cell is not None:
+                df_worksheet[col] = df_original[col]
+                break
+
+    print("Generating detected dangerous permissions.")
+    df_worksheet.to_excel(EXCEL_FILE_PATH)
+
 
 def getAllPermissions():
     permissions = list()
@@ -393,45 +479,6 @@ def checkDetectedStandarcPermissionTable():
             print(i)
     
     return missingColumns    
-
-# output Normal permisions for the sample set
-def outputNormalPermissions(sample_set):
-
-    # check if any permissions are missing
-    if checkDetectedStandarcPermissionTable():
-        exit()
-
-    EXCEL_FILE_PATH = r".\\Output\\Normal-Permissions.xlsx"
-    select_columns = str()
-    cnt = 0
-
-    permissions = getAllNormalPermissions()
-    for index in permissions:
-        if(cnt == 0):
-            select_columns = "`" + index + "`, "
-        elif(cnt == (len(permissions)-1)):
-            select_columns = select_columns + "`" +  index + "`"
-        else:
-            select_columns =  select_columns + "`" + index + "`, "
-        cnt = cnt + 1
-
-    sql = "select id, " + select_columns
-    sql = sql + " from detected_standard_permissions"
-    sql = sql + " where id in " + str(sample_set)
-    sql = sql + " order by id"
-
-    df_original = db.generate_dataframe(sql)
-    df_worksheet = pd.DataFrame()
-    df_worksheet.loc[:, 'id'] = df_original.loc[:, 'id']
-    df_original.drop(columns=['id'])
-
-    for col in df_original:
-        for cell in df_original[col]:
-            if cell is not None:
-                df_worksheet[col] = df_original[col]
-                break
-
-    df_worksheet.to_excel(EXCEL_FILE_PATH)
 
 # Classify detected permissions
 def writeSamplePermissionData(sample_id, permissions):
