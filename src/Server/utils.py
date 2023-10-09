@@ -295,50 +295,67 @@ def outputMalwareRecordsByFamily(database, family):
 def outputStandardPermissions(sample_set):
     EXCEL_FILE_PATH = r".\\Output\\Standard-Permissions.xlsx" 
     
-    sql = "select * from detected_standard_permissions "
-    sql = sql + " where id in " + str(sample_set)
-    sql = sql + " order by id"
+    print("Sample size: " + str(len(sample_set)))
+
+    if  len(sample_set) == 0:
+        return
+    
+    elif len(sample_set) == 1:
+        sql = "select * from detected_standard_permissions "
+        sql = sql + " where id = " + str(sample_set[0])
+        sql = sql + " order by id"
+
+    else:
+        sql = "select * from detected_standard_permissions "
+        sql = sql + " where id in " + str(sample_set)
+        sql = sql + " order by id"
 
     df_alpha = db.generate_dataframe(sql)
     df_beta = pd.DataFrame() # create empty data frame
 
     df_beta['ID'] = df_alpha['ID']
     df_alpha = df_alpha.drop(columns=['ID'])
-
+ 
     for column in df_alpha:
         for cell in df_alpha[column]:
             if cell is not None:
                 df_beta[column] = df_alpha[column]
                 break
 
-    print("Generating standard permission excel file")
+    print("Generating standard permission results")
     df_beta.to_excel(EXCEL_FILE_PATH)
 
 # Unknown Permissions
 def outputUnknownPermissions(sample_set):
     EXCEL_FILE_PATH = r".\\Output\\Unknown-Permissions.xlsx"
 
-    sql = "select * from detected_unknown_permissions "
-    sql = sql + " where id in " + str(sample_set)
-    sql = sql + " order by id"
-
-    df_alpha = db.generate_dataframe(sql)
-    if not df_alpha or df_alpha.empty:
-        print("No unknown permission data generated.")
+    if  len(sample_set) == 0:
+        return
+    
+    elif len(sample_set) == 1:
+        sql = "select * from detected_unknown_permissions "
+        sql = sql + " where id = " + str(sample_set[0])
+        sql = sql + " order by id"
 
     else:
-        df_beta = pd.DataFrame()
+        sql = "select * from detected_unknown_permissions "
+        sql = sql + " where id in " + str(sample_set)
+        sql = sql + " order by id"
 
-        df_beta['id'] = df_alpha['id']
-        df_alpha = df_alpha.drop(columns=['id'])
-
-        for column in df_alpha:
-            for cell in df_alpha[column]:
-                if cell is not None:
-                    df_beta[column] = df_alpha[column]
-                    break
-        print("Generating standard permission excel file")
-        df_beta.to_excel(EXCEL_FILE_PATH)
+    # check if unknown permissions results exists
+    if db.query_data(sql):
+        df_alpha = db.generate_dataframe(sql)
+        if not df_alpha.empty:
+            df_beta = pd.DataFrame()
+            df_beta['ID'] = df_alpha['ID']
+            df_alpha = df_alpha.drop(columns=['ID'])
+            for column in df_alpha:
+                for cell in df_alpha[column]:
+                    if cell is not None:
+                        df_beta[column] = df_alpha[column]
+                        break
+            print("Generating unknown permission excel file")
+            df_beta.to_excel(EXCEL_FILE_PATH)
 
 # output Normal permisions for the sample set
 def outputNormalPermissions(sample_set):
@@ -355,21 +372,35 @@ def outputNormalPermissions(sample_set):
     for index in permissions:
         if(cnt == 0):
             select_columns = "`" + index + "`, "
+
         elif(cnt == (len(permissions)-1)):
             select_columns = select_columns + "`" +  index + "`"
+
         else:
             select_columns =  select_columns + "`" + index + "`, "
+
         cnt = cnt + 1
 
-    sql = "select id, " + select_columns
-    sql = sql + " from detected_standard_permissions"
-    sql = sql + " where id in " + str(sample_set)
-    sql = sql + " order by id"
+    if  len(sample_set) == 0:
+        print("[*] Sample set is 0.")
+        return
+    
+    elif len(sample_set) == 1:
+        sql = "select ID, " + select_columns 
+        sql = sql + " from detected_standard_permissions "
+        sql = sql + " where id = " + str(sample_set[0])
+        sql = sql + " order by id"
+
+    else:
+        sql = "select ID, " + select_columns 
+        sql = sql + " from detected_standard_permissions "
+        sql = sql + " where id in " + str(sample_set)
+        sql = sql + " order by id"
 
     df_original = db.generate_dataframe(sql)
     df_worksheet = pd.DataFrame()
-    df_worksheet.loc[:, 'id'] = df_original.loc[:, 'id']
-    df_original.drop(columns=['id'])
+    df_worksheet.loc[:, 'ID'] = df_original.loc[:, 'ID']
+    df_original.drop(columns=['ID'])
 
     for col in df_original:
         for cell in df_original[col]:
@@ -401,15 +432,25 @@ def outputDangerousPermissions(sample_set):
             select_columns =  select_columns + "`" + index + "`, "
         cnt = cnt + 1
 
-    sql = "select id, " + select_columns
-    sql = sql + " from detected_standard_permissions"
-    sql = sql + " where id in " + str(sample_set)
-    sql = sql + " order by id"
+    if  len(sample_set) == 0:
+        return
+    
+    elif len(sample_set) == 1:
+        sql = "select ID, " + select_columns 
+        sql = sql + " from detected_standard_permissions "
+        sql = sql + " where id = " + str(sample_set[0])
+        sql = sql + " order by id"
+
+    else:
+        sql = "select ID, " + select_columns  
+        sql = sql + " from detected_standard_permissions "
+        sql = sql + " where id in " + str(sample_set)
+        sql = sql + " order by id"
 
     df_original = db.generate_dataframe(sql)
     df_worksheet = pd.DataFrame()
-    df_worksheet.loc[:, 'id'] = df_original.loc[:, 'id']
-    df_original.drop(columns=['id'])
+    df_worksheet.loc[:, 'ID'] = df_original.loc[:, 'ID']
+    df_original.drop(columns=['ID'])
 
     for col in df_original:
         for cell in df_original[col]:
