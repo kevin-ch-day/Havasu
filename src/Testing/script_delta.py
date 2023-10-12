@@ -6,53 +6,28 @@ conn = mysql.connector.connect(
   host="localhost",
   user="root",
   #password="yourpassword",
-  database="cyberops_capstone_android"
+  database="havasu_dev"
 )
 cursor = conn.cursor()
 
-ANUBIS = "(55, 80, 81, 83, 103, 104, 105)"
-permissions = list()
+SAMPLE_SET = "(55, 80, 81, 83, 103, 104, 105, 6, 7, 18, 19, 20, 117, 663, 73, 74, 79, 84, 85, 89, 90, 93, 98,"
+SAMPLE_SET = SAMPLE_SET + " 17, 27, 28, 112, 1, 40, 41, 120, 121, 8, 29, 30, 31, 32, 33, 36, 37, 15, 16, 51, 109, 110,"
+SAMPLE_SET = SAMPLE_SET + " 44, 45, 114, 115, 23, 24, 25, 26)"
 
-sql = "select * "
-sql = sql + "from detected_standard_permissions "
-sql = sql + "where id in " + ANUBIS
-sql = sql + "order by id"
+sql = "select ID, MD5, Kaspersky_Label "
+sql = sql + "from malware_samples "
+sql = sql + "where id in " + SAMPLE_SET
+sql = sql + " order by id"
 
-sql_query = pd.read_sql_query(sql, conn)
-df_alpha = pd.DataFrame(sql_query)
-df_beta = pd.DataFrame()
+#print(sql)
 
-df_beta['ID'] = df_alpha['ID']
-df_alpha = df_alpha.drop(columns=['ID'])
+buffer = list()
+results = pd.read_sql_query(sql, conn)
+df = pd.DataFrame(results)
 
-for column in df_alpha:
-  for cell in df_alpha[column]:
-    if cell is not None:
-      df_beta[column] = df_alpha[column]
-      permissions.append(column)
-      break
-    # if
-  # for
-# for
+with open('results.txt', 'w') as f:
+  for index, row in df.iterrows():
+      temp = str(row['ID']) + " & " + row['Kaspersky_Label'] + " & " + row['MD5'] + " \\\\\n" 
+      f.write(temp)
 
-sql = "select * from android_permissions"
-sql = sql + " where Name in ("
-
-index = 0
-for p in permissions:
-  if index is (len(permissions)-1):
-    sql = sql + "'" + p + "'"
-  else:
-    sql = sql + "'" + p + "'" + ", "
-  # for
-  index = index + 1
-# for
-
-sql = sql + ") order by Protection_level, Name"
-
-#print("\n# permissions: " +str(len(permissions)))
-#print("\n" + sql + "\n") # DEBUGGING
-
-sql_query = pd.read_sql_query(sql, conn)
-df = pd.DataFrame(sql_query)
-df.to_excel('Results.xlsx')
+#df_alpha.to_excel('Results.xlsx')
